@@ -1,0 +1,79 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Environments & Virtual Envs
+.env
+.env.local
+.env.*.local
+*.env
+!.env.example
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Node & Frontend Dependencies
+node_modules/
+dist/
+dist-ssr/
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-debug.log*
+
+# Testing & Coverage
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+coverage.xml
+*.lcov
+test-results/
+
+# Uploaded Medical Reports & Private Patient Data (CRITICAL PRIVACY)
+uploads/
+storage/
+temp_uploads/
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.tiff
+*.webp
+!tests/fixtures/*.pdf
+!tests/fixtures/*.png
+
+# Generated Audio Files (TTS Output)
+audio_output/
+*.mp3
+*.wav
+*.ogg
+
+# IDE & OS Files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Docker & Container Artifacts
+*.docker.log
+
+# Terraform Local State
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Kubernetes & Kind Local Artifacts
+kind-config.local.yaml
+kubeconfig.local
