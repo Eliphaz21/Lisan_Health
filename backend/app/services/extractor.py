@@ -29,15 +29,15 @@ def calculate_observation_flag(
     low = interval.low
     high = interval.high
 
-    # Substantially deviant / critical thresholds (arbitrarily +/- 50% outside bounds for safety)
+    # Substantially deviant / critical thresholds (substantially beyond normal span)
     if low is not None and high is not None:
         span = high - low
         if value < low:
-            if span > 0 and value < (low - 0.5 * span):
+            if span > 0 and value < (low - span):
                 return ObservationFlag.CRITICAL_LOW, False, None
             return ObservationFlag.LOW, False, None
         elif value > high:
-            if span > 0 and value > (high + 0.5 * span):
+            if span > 0 and value > (high + span):
                 return ObservationFlag.CRITICAL_HIGH, False, None
             return ObservationFlag.HIGH, False, None
         else:
