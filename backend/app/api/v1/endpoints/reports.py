@@ -3,7 +3,9 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
 
 from backend.app.schemas.report import ExtractedLabReport
+from backend.app.schemas.ai import EnglishClinicalExplanation
 from backend.app.services.extractor import DeterministicExtractor
+from backend.app.services.ai.reasoning_provider import get_reasoning_provider
 
 router = APIRouter(prefix="/reports", tags=["Report Processing"])
 
@@ -52,4 +54,24 @@ async def parse_text_report(request: RawTextParseRequest) -> ExtractedLabReport:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Failed to parse text: {str(e)}"
+        )
+
+
+@router.post(
+    "/explain-english",
+    response_model=EnglishClinicalExplanation,
+    status_code=status.HTTP_200_OK,
+    summary="Generate Provider A English Clinical Reasoning",
+    description="Analyzes an extracted laboratory report and returns an evidence-grounded non-diagnostic explanation."
+)
+async def explain_report_in_english(report: ExtractedLabReport) -> EnglishClinicalExplanation:
+    """Invokes AI Provider A for evidence-grounded English reasoning."""
+    try:
+        provider = get_reasoning_provider()
+        explanation = await provider.generate_explanation(report)
+        return explanation
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Clinical reasoning failed: {str(e)}"
         )
