@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "lisan-health.fullname" . }}-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "lisan-health.labels" . | nindent 4 }}
+data:
+  ENVIRONMENT: {{ .Values.global.environment | quote }}
+  LOG_LEVEL: {{ .Values.backend.env.LOG_LEVEL | quote }}
+  APP_HOST: {{ .Values.backend.env.APP_HOST | quote }}
+  APP_PORT: {{ .Values.backend.env.APP_PORT | quote }}
+  REASONING_PROVIDER: {{ .Values.backend.env.REASONING_PROVIDER | quote }}
+  ADDIS_AI_TTS_ENABLED: {{ .Values.backend.env.ADDIS_AI_TTS_ENABLED | quote }}
+  PROMETHEUS_METRICS_ENABLED: {{ .Values.backend.env.PROMETHEUS_METRICS_ENABLED | quote }}

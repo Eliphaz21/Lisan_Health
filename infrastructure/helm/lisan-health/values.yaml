@@ -1,0 +1,81 @@
+# Default values for lisan-health chart
+
+global:
+  environment: production
+  namespace: lisan-health
+
+backend:
+  replicaCount: 2
+  image:
+    repository: ghcr.io/eliphaz21/lisan-backend
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 8000
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 75
+    targetMemoryUtilizationPercentage: 80
+  env:
+    LOG_LEVEL: "INFO"
+    APP_HOST: "0.0.0.0"
+    APP_PORT: "8000"
+    REASONING_PROVIDER: "mock"
+    ADDIS_AI_TTS_ENABLED: "true"
+    PROMETHEUS_METRICS_ENABLED: "true"
+
+frontend:
+  replicaCount: 2
+  image:
+    repository: ghcr.io/eliphaz21/lisan-frontend
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 80
+  resources:
+    limits:
+      cpu: 250m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 75
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: 15m
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: lisanhealth.et
+      paths:
+        - path: /
+          pathType: Prefix
+          service: frontend
+    - host: api.lisanhealth.et
+      paths:
+        - path: /
+          pathType: Prefix
+          service: backend
+  tls:
+    - secretName: lisanhealth-tls
+      hosts:
+        - lisanhealth.et
+        - api.lisanhealth.et
