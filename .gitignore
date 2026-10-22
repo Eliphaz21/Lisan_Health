@@ -49,6 +49,8 @@ temp_uploads/
 *.webp
 !tests/fixtures/*.pdf
 !tests/fixtures/*.png
+!frontend/public/*.png
+!frontend/src/assets/*.png
 
 # Generated Audio Files (TTS Output)
 audio_output/

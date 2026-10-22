@@ -90,18 +90,14 @@ body {
   color: inherit;
 }
 
-.brand-logo {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-md);
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 800;
-  font-size: 1.25rem;
-  box-shadow: 0 2px 4px rgba(13, 105, 85, 0.2);
+.brand-logo-img {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: contain;
+  box-shadow: 0 2px 8px rgba(10, 37, 64, 0.2);
+  border: 1.5px solid rgba(255, 255, 255, 0.8);
+  background: #0A2540;
 }
 
 .brand-title {
@@ -110,6 +106,19 @@ body {
   color: var(--color-primary-dark);
   display: flex;
   flex-direction: column;
+}
+
+.brand-primary-text {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  line-height: 1.2;
+}
+
+.brand-native-text {
+  font-weight: 500;
+  color: var(--color-primary);
+  font-size: 0.95rem;
 }
 
 .brand-subtitle {
