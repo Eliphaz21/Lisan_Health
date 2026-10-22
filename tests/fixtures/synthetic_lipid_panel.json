@@ -1,0 +1,54 @@
+{
+  "report_id": "SYNTH-LIPID-002",
+  "panel_name": "Lipid Profile Panel",
+  "patient_age": 55,
+  "patient_gender": "male",
+  "collected_date": "2026-10-21T08:00:00Z",
+  "raw_text": "LIPID PROFILE\nTotal Cholesterol: 245 mg/dL (Ref: < 200)\nTriglycerides: 190 mg/dL (Ref: < 150)\nHDL Cholesterol: 38 mg/dL (Ref: > 40)\nLDL Cholesterol: 169 mg/dL (Ref: < 100)",
+  "observations": [
+    {
+      "test_name": "Total Cholesterol",
+      "code": "CHOL",
+      "value": 245.0,
+      "unit": "mg/dL",
+      "reference_interval": {
+        "low": null,
+        "high": 200.0,
+        "unit": "mg/dL"
+      }
+    },
+    {
+      "test_name": "Triglycerides",
+      "code": "TRIG",
+      "value": 190.0,
+      "unit": "mg/dL",
+      "reference_interval": {
+        "low": null,
+        "high": 150.0,
+        "unit": "mg/dL"
+      }
+    },
+    {
+      "test_name": "HDL Cholesterol",
+      "code": "HDL",
+      "value": 38.0,
+      "unit": "mg/dL",
+      "reference_interval": {
+        "low": 40.0,
+        "high": null,
+        "unit": "mg/dL"
+      }
+    },
+    {
+      "test_name": "LDL Cholesterol",
+      "code": "LDL",
+      "value": 169.0,
+      "unit": "mg/dL",
+      "reference_interval": {
+        "low": null,
+        "high": 100.0,
+        "unit": "mg/dL"
+      }
+    }
+  ]
+}

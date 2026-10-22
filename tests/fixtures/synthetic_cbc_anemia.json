@@ -1,0 +1,65 @@
+{
+  "report_id": "SYNTH-CBC-001",
+  "panel_name": "Complete Blood Count (CBC)",
+  "patient_age": 42,
+  "patient_gender": "female",
+  "collected_date": "2026-10-20T09:30:00Z",
+  "raw_text": "COMPLETE BLOOD COUNT (CBC)\nWBC: 6.5 10^3/uL (Ref: 4.0 - 11.0)\nRBC: 3.8 10^6/uL (Ref: 4.2 - 5.4)\nHGB: 9.8 g/dL (Ref: 12.0 - 16.0)\nHCT: 30.5 % (Ref: 36.0 - 46.0)\nPLT: 240 10^3/uL (Ref: 150 - 450)",
+  "observations": [
+    {
+      "test_name": "White Blood Cells (WBC)",
+      "code": "WBC",
+      "value": 6.5,
+      "unit": "10^3/uL",
+      "reference_interval": {
+        "low": 4.0,
+        "high": 11.0,
+        "unit": "10^3/uL"
+      }
+    },
+    {
+      "test_name": "Red Blood Cells (RBC)",
+      "code": "RBC",
+      "value": 3.8,
+      "unit": "10^6/uL",
+      "reference_interval": {
+        "low": 4.2,
+        "high": 5.4,
+        "unit": "10^6/uL"
+      }
+    },
+    {
+      "test_name": "Hemoglobin (HGB)",
+      "code": "HGB",
+      "value": 9.8,
+      "unit": "g/dL",
+      "reference_interval": {
+        "low": 12.0,
+        "high": 16.0,
+        "unit": "g/dL"
+      }
+    },
+    {
+      "test_name": "Hematocrit (HCT)",
+      "code": "HCT",
+      "value": 30.5,
+      "unit": "%",
+      "reference_interval": {
+        "low": 36.0,
+        "high": 46.0,
+        "unit": "%"
+      }
+    },
+    {
+      "test_name": "Platelets (PLT)",
+      "code": "PLT",
+      "value": 240.0,
+      "unit": "10^3/uL",
+      "reference_interval": {
+        "low": 150.0,
+        "high": 450.0,
+        "unit": "10^3/uL"
+      }
+    }
+  ]
+}

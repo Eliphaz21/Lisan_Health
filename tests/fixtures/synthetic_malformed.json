@@ -1,0 +1,32 @@
+{
+  "report_id": "SYNTH-MALFORMED-003",
+  "panel_name": "Unclear Scanned Panel",
+  "patient_age": null,
+  "patient_gender": null,
+  "collected_date": null,
+  "raw_text": "BLOOD REPORT\nGLUCOSE: 142 (Ref: ???)\nCREATININE: ??? mg/dL (Ref: 0.6 - 1.2)",
+  "observations": [
+    {
+      "test_name": "Glucose",
+      "code": "GLU",
+      "value": 142.0,
+      "unit": "",
+      "reference_interval": {
+        "low": null,
+        "high": null,
+        "unit": ""
+      }
+    },
+    {
+      "test_name": "Creatinine",
+      "code": "CREAT",
+      "value": null,
+      "unit": "mg/dL",
+      "reference_interval": {
+        "low": 0.6,
+        "high": 1.2,
+        "unit": "mg/dL"
+      }
+    }
+  ]
+}
