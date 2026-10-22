@@ -1,0 +1,37 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: lisan-health-ingress
+  namespace: lisan-health
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: 15m
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  tls:
+    - hosts:
+        - lisanhealth.et
+        - api.lisanhealth.et
+      secretName: lisanhealth-tls
+  rules:
+    - host: lisanhealth.et
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: lisan-frontend
+                port:
+                  number: 80
+    - host: api.lisanhealth.et
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: lisan-backend
+                port:
+                  number: 8000
