@@ -123,7 +123,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onLoginSuccess }) =>
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '0.5rem 0 2rem',
+        padding: '0 0 2.5rem',
       }}>
         {/* Logo OUTSIDE the Card */}
         <Link
@@ -131,7 +131,8 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onLoginSuccess }) =>
           aria-label="LisanHealth Home"
           style={{
             display: 'inline-block',
-            marginBottom: '1.25rem',
+            marginBottom: '0.85rem',
+            marginTop: '-1rem',
             textDecoration: 'none',
           }}
         >
@@ -139,12 +140,10 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onLoginSuccess }) =>
             src="/logo.png"
             alt="LisanHealth Logo"
             style={{
-              width: '50px',
-              height: '50px',
-              borderRadius: '50%',
+              width: '68px',
+              height: '68px',
               objectFit: 'contain',
               display: 'block',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
             }}
           />
         </Link>
