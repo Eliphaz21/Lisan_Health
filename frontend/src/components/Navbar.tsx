@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import type { HealthStatus, SupportedLanguage } from '../types/report';
 import type { User } from '../types/auth';
 import { translations } from '../utils/i18n';
@@ -7,7 +8,6 @@ interface NavbarProps {
   health: HealthStatus | null;
   language: SupportedLanguage;
   user: User | null;
-  onOpenAuth: () => void;
   onOpenAdmin: () => void;
   onOpenHistory: () => void;
   onLogout: () => void;
@@ -17,7 +17,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   health,
   language,
   user,
-  onOpenAuth,
   onOpenAdmin,
   onOpenHistory,
   onLogout,
@@ -27,7 +26,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header className="navbar" role="banner">
       <div className="container navbar-inner">
-        <a href="/" className="brand-wrapper" aria-label="LisanHealth Home">
+        <Link to="/" className="brand-wrapper" aria-label="LisanHealth Home">
           <img
             src="/logo.png"
             alt="LisanHealth Logo"
@@ -44,7 +43,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </span>
             <span className="brand-subtitle">{t.tagline}</span>
           </div>
-        </a>
+        </Link>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           {/* Health Status Badge */}
@@ -160,22 +159,45 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             </div>
           ) : (
-            <button
-              onClick={onOpenAuth}
-              style={{
-                background: '#B8F7E4',
-                color: '#15171B',
-                border: 'none',
-                padding: '0.4rem 0.9rem',
-                borderRadius: 'var(--radius-md)',
-                fontSize: '0.85rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                transition: 'opacity 0.2s',
-              }}
-            >
-              Sign In
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Link
+                to="/login"
+                style={{
+                  background: 'transparent',
+                  color: 'var(--color-text-main)',
+                  border: '1px solid var(--color-border)',
+                  padding: '0.4rem 0.85rem',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  transition: 'all 0.2s',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                }}
+              >
+                Sign In
+              </Link>
+              <Link
+                to="/register"
+                style={{
+                  background: '#B8F7E4',
+                  color: '#15171B',
+                  border: 'none',
+                  padding: '0.4rem 0.95rem',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                  transition: 'opacity 0.2s',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  boxShadow: '0 2px 6px rgba(184, 247, 228, 0.25)',
+                }}
+              >
+                Register
+              </Link>
+            </div>
           )}
         </div>
       </div>

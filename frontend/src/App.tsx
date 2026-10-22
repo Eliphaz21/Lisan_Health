@@ -1,16 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
-import { LanguageSelector } from './components/LanguageSelector';
-import { ReportUpload } from './components/ReportUpload';
-import { ObservationTable } from './components/ObservationTable';
-import { AudioPlayer } from './components/AudioPlayer';
-import { AuthModal } from './components/AuthModal';
 import { AdminModal } from './components/AdminModal';
 import { HistoryModal } from './components/HistoryModal';
-import { StethoscopeIcon, AlertShieldIcon } from './components/Icons';
+import { HomePage } from './pages/HomePage';
+import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
 import type { ExtractedLabReport, HealthStatus, SupportedLanguage, LabObservation } from './types/report';
 import type { User } from './types/auth';
-import { translations } from './utils/i18n';
 
 interface SamplePayload {
   report_id: string;
@@ -63,11 +60,8 @@ export const App: React.FC = () => {
   // Authentication & Modals State
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string>('');
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-
-  const t = translations[currentLanguage];
 
   useEffect(() => {
     // Check saved user session
@@ -78,7 +72,6 @@ export const App: React.FC = () => {
         setToken(savedToken);
         setUser(JSON.parse(savedUser));
       } catch {
-        // clear corrupted session
         localStorage.removeItem('lisan_token');
         localStorage.removeItem('lisan_user');
       }
@@ -100,6 +93,11 @@ export const App: React.FC = () => {
     localStorage.removeItem('lisan_user');
     setUser(null);
     setToken('');
+  };
+
+  const handleLoginSuccess = (loggedUser: User, loggedToken: string) => {
+    setUser(loggedUser);
+    setToken(loggedToken);
   };
 
   const handleProcessText = async (text: string, panelName: string, fileName?: string) => {
@@ -124,7 +122,6 @@ export const App: React.FC = () => {
       const data = await response.json();
       setExplanationData(data);
 
-      // Map to UI observation table format
       const obs: LabObservation[] = data.extracted.analytes.map((a: any) => ({
         test_name: a.name,
         code: a.name.substring(0, 4).toUpperCase(),
@@ -197,7 +194,6 @@ export const App: React.FC = () => {
         throw new Error('Backend returned status ' + response.status);
       }
     } catch {
-      // Fallback: parse client-side
       setReport({
         report_id: payload.report_id,
         panel_name: payload.panel_name,
@@ -222,127 +218,100 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="app">
-      <Navbar
-        health={health}
-        language={currentLanguage}
-        user={user}
-        onOpenAuth={() => setIsAuthOpen(true)}
-        onOpenAdmin={() => setIsAdminOpen(true)}
-        onOpenHistory={() => setIsHistoryOpen(true)}
-        onLogout={handleLogout}
-      />
+    <BrowserRouter>
+      <div className="app">
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <>
+                <Navbar
+                  health={health}
+                  language={currentLanguage}
+                  user={user}
+                  onOpenAdmin={() => setIsAdminOpen(true)}
+                  onOpenHistory={() => setIsHistoryOpen(true)}
+                  onLogout={handleLogout}
+                />
+                <HomePage
+                  currentLanguage={currentLanguage}
+                  setCurrentLanguage={setCurrentLanguage}
+                  report={report}
+                  explanationData={explanationData}
+                  isLoading={isLoading}
+                  error={error}
+                  onLoadSynthetic={handleLoadSynthetic}
+                  onFileUpload={handleFileUpload}
+                />
+              </>
+            }
+          />
 
-      <main className="container" style={{ paddingBottom: '3rem' }}>
-        <section className="hero">
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
-            <LanguageSelector
-              currentLanguage={currentLanguage}
-              onLanguageChange={setCurrentLanguage}
-            />
-          </div>
-          <h1 className="hero-title">{t.heroTitle}</h1>
-          <p className="hero-tagline">{t.heroTagline}</p>
-        </section>
+          <Route
+            path="/login"
+            element={
+              user ? (
+                <Navigate to="/" replace />
+              ) : (
+                <LoginPage onLoginSuccess={handleLoginSuccess} />
+              )
+            }
+          />
 
-        {error && (
-          <div style={{ background: '#FEE2E2', color: '#991B1B', padding: '1rem', borderRadius: 'var(--radius-md)', marginBottom: '1rem' }}>
-            {error}
-          </div>
-        )}
+          <Route
+            path="/register"
+            element={
+              user ? (
+                <Navigate to="/" replace />
+              ) : (
+                <RegisterPage onLoginSuccess={handleLoginSuccess} />
+              )
+            }
+          />
 
-        <ReportUpload
-          onLoadSynthetic={handleLoadSynthetic}
-          onFileUpload={handleFileUpload}
-          isLoading={isLoading}
-          language={currentLanguage}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+
+        {/* Admin and History Modals */}
+        <AdminModal
+          isOpen={isAdminOpen}
+          onClose={() => setIsAdminOpen(false)}
+          token={token}
         />
 
-        {report && (
-          <>
-            <AudioPlayer
-              language={currentLanguage}
-              explanationText={explanationData?.explanation_localized?.summary || report.raw_text}
-            />
-
-            <ObservationTable
-              observations={report.observations}
-              panelName={report.panel_name}
-              status={report.status}
-              warnings={report.warnings}
-              language={currentLanguage}
-            />
-
-            <div className="card card-doctor-questions" style={{ marginTop: '1.5rem' }}>
-              <h3 style={{ fontSize: '1.1rem', marginBottom: '0.65rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <StethoscopeIcon size={22} color="var(--color-graphite)" />
-                <span>{t.doctorQuestionsTitle}</span>
-              </h3>
-              <ul style={{ margin: '0.25rem 0 0 1.25rem', color: 'var(--color-graphite)', fontSize: '0.9rem', lineHeight: 1.6 }}>
-                {t.doctorQuestions.map((q, idx) => (
-                  <li key={idx} style={{ marginBottom: '0.35rem' }}>"{q}"</li>
-                ))}
-              </ul>
-            </div>
-          </>
-        )}
-
-        <aside className="disclaimer-banner" role="note">
-          <AlertShieldIcon size={22} color="var(--color-graphite)" />
-          <div>
-            <strong style={{ color: 'var(--color-graphite)' }}>{t.disclaimerTitle}</strong> {t.disclaimerBody}
-          </div>
-        </aside>
-      </main>
-
-      {/* Modals */}
-      <AuthModal
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
-        onLoginSuccess={(loggedUser, loggedToken) => {
-          setUser(loggedUser);
-          setToken(loggedToken);
-        }}
-      />
-
-      <AdminModal
-        isOpen={isAdminOpen}
-        onClose={() => setIsAdminOpen(false)}
-        token={token}
-      />
-
-      <HistoryModal
-        isOpen={isHistoryOpen}
-        onClose={() => setIsHistoryOpen(false)}
-        token={token}
-        onSelectReport={(loaded) => {
-          setExplanationData(loaded);
-          const obs: LabObservation[] = loaded.extracted.analytes.map((a: any) => ({
-            test_name: a.name,
-            code: a.name.substring(0, 4).toUpperCase(),
-            value: a.value,
-            unit: a.unit,
-            reference_interval: {
-              low: a.reference_range_low,
-              high: a.reference_range_high,
+        <HistoryModal
+          isOpen={isHistoryOpen}
+          onClose={() => setIsHistoryOpen(false)}
+          token={token}
+          onSelectReport={(loaded) => {
+            setExplanationData(loaded);
+            const obs: LabObservation[] = loaded.extracted.analytes.map((a: any) => ({
+              test_name: a.name,
+              code: a.name.substring(0, 4).toUpperCase(),
+              value: a.value,
               unit: a.unit,
-            },
-            flag: a.flag,
-            needs_review: a.flag === 'CRITICAL',
-          }));
+              reference_interval: {
+                low: a.reference_range_low,
+                high: a.reference_range_high,
+                unit: a.unit,
+              },
+              flag: a.flag,
+              needs_review: a.flag === 'CRITICAL',
+            }));
 
-          setReport({
-            report_id: `HISTORY-${Date.now()}`,
-            panel_name: loaded.extracted.test_category,
-            raw_text: loaded.explanation_localized?.summary || loaded.explanation_en?.summary || '',
-            observations: obs,
-            status: 'EXTRACTED',
-            confidence_score: 1.0,
-            warnings: [],
-          });
-        }}
-      />
-    </div>
+            setReport({
+              report_id: `HISTORY-${Date.now()}`,
+              panel_name: loaded.extracted.test_category,
+              raw_text: loaded.explanation_localized?.summary || loaded.explanation_en?.summary || '',
+              observations: obs,
+              status: 'EXTRACTED',
+              confidence_score: 1.0,
+              warnings: [],
+            });
+          }}
+        />
+      </div>
+    </BrowserRouter>
   );
 };
 
