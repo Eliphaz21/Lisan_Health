@@ -1,17 +1,23 @@
 import React, { useRef } from 'react';
+import type { SupportedLanguage } from '../types/report';
+import { translations } from '../utils/i18n';
+import { FileReportIcon, LabFlaskIcon, HeartPulseIcon, AlertShieldIcon } from './Icons';
 
 interface ReportUploadProps {
   onLoadSynthetic: (sampleType: 'cbc' | 'lipid' | 'malformed') => void;
   onFileUpload: (file: File) => void;
   isLoading: boolean;
+  language: SupportedLanguage;
 }
 
 export const ReportUpload: React.FC<ReportUploadProps> = ({
   onLoadSynthetic,
   onFileUpload,
   isLoading,
+  language,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const t = translations[language];
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -42,18 +48,23 @@ export const ReportUpload: React.FC<ReportUploadProps> = ({
           accept=".pdf,.png,.jpg,.jpeg"
           onChange={handleFileChange}
         />
-        <div className="upload-icon" aria-hidden="true">📋</div>
+        <div style={{ color: 'var(--color-primary)', display: 'flex', justifyContent: 'center', marginBottom: '0.75rem' }}>
+          <FileReportIcon size={44} />
+        </div>
         <h3 style={{ fontSize: '1.15rem', color: 'var(--color-primary-dark)', marginBottom: '0.25rem' }}>
-          Drop laboratory report here, or <span style={{ textDecoration: 'underline', color: 'var(--color-primary)' }}>browse</span>
+          {t.uploadTitle}{' '}
+          <span style={{ textDecoration: 'underline', color: 'var(--color-primary)', cursor: 'pointer' }}>
+            {t.uploadBrowse}
+          </span>
         </h3>
         <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-          Supports medical laboratory PDFs and scanned images (PNG, JPEG up to 10MB)
+          {t.uploadSubtitle}
         </p>
       </div>
 
       <div style={{ marginTop: '1.25rem', textAlign: 'center' }}>
-        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>
-          OR TEST INSTANTLY WITH SYNTHETIC CLINICAL SAMPLES:
+        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', letterSpacing: '0.05em' }}>
+          {t.sampleSectionTitle}
         </span>
         <div className="sample-buttons">
           <button
@@ -62,7 +73,8 @@ export const ReportUpload: React.FC<ReportUploadProps> = ({
             disabled={isLoading}
             onClick={() => onLoadSynthetic('cbc')}
           >
-            <span>🩸</span> Complete Blood Count (Anemia)
+            <LabFlaskIcon size={18} />
+            <span>{t.sampleCbc}</span>
           </button>
           <button
             type="button"
@@ -70,7 +82,8 @@ export const ReportUpload: React.FC<ReportUploadProps> = ({
             disabled={isLoading}
             onClick={() => onLoadSynthetic('lipid')}
           >
-            <span>🫀</span> Lipid Profile Panel
+            <HeartPulseIcon size={18} />
+            <span>{t.sampleLipid}</span>
           </button>
           <button
             type="button"
@@ -78,7 +91,8 @@ export const ReportUpload: React.FC<ReportUploadProps> = ({
             disabled={isLoading}
             onClick={() => onLoadSynthetic('malformed')}
           >
-            <span>⚠️</span> Malformed Scan (Uncertainty)
+            <AlertShieldIcon size={18} />
+            <span>{t.sampleMalformed}</span>
           </button>
         </div>
       </div>

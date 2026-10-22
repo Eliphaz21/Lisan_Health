@@ -4,7 +4,9 @@ import { LanguageSelector } from './components/LanguageSelector';
 import { ReportUpload } from './components/ReportUpload';
 import { ObservationTable } from './components/ObservationTable';
 import { AudioPlayer } from './components/AudioPlayer';
+import { StethoscopeIcon, AlertShieldIcon } from './components/Icons';
 import type { ExtractedLabReport, HealthStatus, SupportedLanguage, LabObservation } from './types/report';
+import { translations } from './utils/i18n';
 
 interface SamplePayload {
   report_id: string;
@@ -56,6 +58,8 @@ export const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error] = useState<string | null>(null);
 
+  const t = translations[currentLanguage];
+
   useEffect(() => {
     fetch('/api/v1/health')
       .then((res) => (res.ok ? res.json() : null))
@@ -100,7 +104,6 @@ export const App: React.FC = () => {
 
   const handleFileUpload = (file: File) => {
     setIsLoading(true);
-    // In Stage A, we acknowledge receipt and simulate extraction
     setTimeout(() => {
       setReport({
         report_id: `UPLOAD-${Date.now()}`,
@@ -136,7 +139,7 @@ export const App: React.FC = () => {
 
   return (
     <div className="app">
-      <Navbar health={health} />
+      <Navbar health={health} language={currentLanguage} />
 
       <main className="container" style={{ paddingBottom: '3rem' }}>
         <section className="hero">
@@ -146,10 +149,8 @@ export const App: React.FC = () => {
               onLanguageChange={setCurrentLanguage}
             />
           </div>
-          <h1 className="hero-title">Your Health Report, in Your Language</h1>
-          <p className="hero-tagline">
-            Understand medical laboratory tests, reference ranges, and flags in Amharic, Afaan Oromoo, and English with evidence-grounded audio explanations.
-          </p>
+          <h1 className="hero-title">{t.heroTitle}</h1>
+          <p className="hero-tagline">{t.heroTagline}</p>
         </section>
 
         {error && (
@@ -162,6 +163,7 @@ export const App: React.FC = () => {
           onLoadSynthetic={handleLoadSynthetic}
           onFileUpload={handleFileUpload}
           isLoading={isLoading}
+          language={currentLanguage}
         />
 
         {report && (
@@ -176,25 +178,27 @@ export const App: React.FC = () => {
               panelName={report.panel_name}
               status={report.status}
               warnings={report.warnings}
+              language={currentLanguage}
             />
 
             <div className="card" style={{ marginTop: '1.5rem', background: 'var(--color-primary-surface)', borderColor: 'var(--color-primary-light)' }}>
-              <h3 style={{ fontSize: '1.1rem', color: 'var(--color-primary-dark)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span>🩺</span> Suggested Questions for Your Doctor
+              <h3 style={{ fontSize: '1.1rem', color: 'var(--color-primary-dark)', marginBottom: '0.65rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <StethoscopeIcon size={22} color="var(--color-primary-dark)" />
+                <span>{t.doctorQuestionsTitle}</span>
               </h3>
-              <ul style={{ margin: '0.25rem 0 0 1.25rem', color: 'var(--color-primary-dark)', fontSize: '0.9rem' }}>
-                <li>"What does this specific result indicate in the context of my personal symptoms?"</li>
-                <li>"Are these values outside the standard interval, and do we need follow-up testing?"</li>
-                <li>"Should any dietary or lifestyle adjustments be considered before our next checkup?"</li>
+              <ul style={{ margin: '0.25rem 0 0 1.25rem', color: 'var(--color-primary-dark)', fontSize: '0.9rem', lineHeight: 1.6 }}>
+                {t.doctorQuestions.map((q, idx) => (
+                  <li key={idx} style={{ marginBottom: '0.35rem' }}>"{q}"</li>
+                ))}
               </ul>
             </div>
           </>
         )}
 
         <aside className="disclaimer-banner" role="note">
-          <span style={{ fontSize: '1.25rem' }}>⚠️</span>
+          <AlertShieldIcon size={22} color="#9A5B08" />
           <div>
-            <strong>Educational Medical Explainer Notice:</strong> LisanHealth is strictly an educational tool to aid communication and health literacy. It does <em>not</em> provide medical diagnoses, treatment instructions, or prescribe medications. Always consult a qualified healthcare professional regarding any clinical concerns.
+            <strong>{t.disclaimerTitle}</strong> {t.disclaimerBody}
           </div>
         </aside>
       </main>

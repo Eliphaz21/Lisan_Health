@@ -1,19 +1,34 @@
 import React from 'react';
-import type { HealthStatus } from '../types/report';
+import type { HealthStatus, SupportedLanguage } from '../types/report';
+import { translations } from '../utils/i18n';
 
 interface NavbarProps {
   health: HealthStatus | null;
+  language: SupportedLanguage;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ health }) => {
+export const Navbar: React.FC<NavbarProps> = ({ health, language }) => {
+  const t = translations[language];
+
   return (
     <header className="navbar" role="banner">
       <div className="container navbar-inner">
         <a href="/" className="brand-wrapper" aria-label="LisanHealth Home">
-          <div className="brand-logo" aria-hidden="true">ል</div>
+          <img
+            src="/logo.png"
+            alt="LisanHealth Logo"
+            className="brand-logo-img"
+            width="42"
+            height="42"
+          />
           <div className="brand-title">
-            <span>LisanHealth <span style={{ fontWeight: 400, color: 'var(--color-primary-light)' }}>(ልሳን ጤና)</span></span>
-            <span className="brand-subtitle">Your Health Report, in Your Language</span>
+            <span className="brand-primary-text">
+              LisanHealth{' '}
+              <span className="brand-native-text">
+                (ልሳን ጤና)
+              </span>
+            </span>
+            <span className="brand-subtitle">{t.tagline}</span>
           </div>
         </a>
 
@@ -23,13 +38,14 @@ export const Navbar: React.FC<NavbarProps> = ({ health }) => {
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.4rem',
+                gap: '0.45rem',
                 fontSize: '0.8rem',
                 color: 'var(--color-text-muted)',
                 background: 'var(--color-bg-base)',
                 padding: '0.35rem 0.75rem',
                 borderRadius: 'var(--radius-full)',
                 border: '1px solid var(--color-border)',
+                fontWeight: 600,
               }}
               title={`API Version ${health.version} - ${health.environment}`}
             >
@@ -42,19 +58,20 @@ export const Navbar: React.FC<NavbarProps> = ({ health }) => {
                   display: 'inline-block',
                 }}
               />
-              <span>API v{health.version} Online</span>
+              <span>{t.apiOnline} (v{health.version})</span>
             </div>
           ) : (
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.4rem',
+                gap: '0.45rem',
                 fontSize: '0.8rem',
                 color: 'var(--color-status-flag)',
                 background: 'var(--color-status-flag-bg)',
                 padding: '0.35rem 0.75rem',
                 borderRadius: 'var(--radius-full)',
+                fontWeight: 600,
               }}
             >
               <span
@@ -66,7 +83,7 @@ export const Navbar: React.FC<NavbarProps> = ({ health }) => {
                   display: 'inline-block',
                 }}
               />
-              <span>Connecting API...</span>
+              <span>{t.apiConnecting}</span>
             </div>
           )}
         </div>

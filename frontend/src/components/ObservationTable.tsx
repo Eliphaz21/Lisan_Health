@@ -1,11 +1,14 @@
 import React from 'react';
-import type { LabObservation, ObservationFlag } from '../types/report';
+import type { LabObservation, ObservationFlag, SupportedLanguage } from '../types/report';
+import { translations } from '../utils/i18n';
+import { AlertShieldIcon } from './Icons';
 
 interface ObservationTableProps {
   observations: LabObservation[];
   panelName: string;
   status: string;
   warnings?: string[];
+  language: SupportedLanguage;
 }
 
 export const ObservationTable: React.FC<ObservationTableProps> = ({
@@ -13,22 +16,26 @@ export const ObservationTable: React.FC<ObservationTableProps> = ({
   panelName,
   status,
   warnings = [],
+  language,
 }) => {
+  const t = translations[language];
+
   const renderFlagPill = (flag: ObservationFlag) => {
+    const label = t.flagLabels[flag] || flag;
     switch (flag) {
       case 'NORMAL':
-        return <span className="status-pill normal">Normal</span>;
+        return <span className="status-pill normal">{label}</span>;
       case 'LOW':
-        return <span className="status-pill low">Low</span>;
+        return <span className="status-pill low">{label}</span>;
       case 'HIGH':
-        return <span className="status-pill high">High</span>;
+        return <span className="status-pill high">{label}</span>;
       case 'CRITICAL_LOW':
-        return <span className="status-pill critical_low">Critical Low</span>;
+        return <span className="status-pill critical_low">{label}</span>;
       case 'CRITICAL_HIGH':
-        return <span className="status-pill critical_high">Critical High</span>;
+        return <span className="status-pill critical_high">{label}</span>;
       case 'UNCERTAIN':
       default:
-        return <span className="status-pill uncertain">Uncertain</span>;
+        return <span className="status-pill uncertain">{label}</span>;
     }
   };
 
@@ -52,7 +59,7 @@ export const ObservationTable: React.FC<ObservationTableProps> = ({
             {panelName}
           </h2>
           <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-            {observations.length} Analyte Measurements Extracted
+            {observations.length} {t.measurementsExtracted}
           </span>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -78,26 +85,32 @@ export const ObservationTable: React.FC<ObservationTableProps> = ({
             marginBottom: '1rem',
             fontSize: '0.85rem',
             color: '#6D28D9',
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '0.65rem',
           }}
         >
-          <strong>Extraction Warnings:</strong>
-          <ul style={{ margin: '0.25rem 0 0 1.25rem' }}>
-            {warnings.map((w, idx) => (
-              <li key={idx}>{w}</li>
-            ))}
-          </ul>
+          <AlertShieldIcon size={20} color="#6D28D9" />
+          <div>
+            <strong>{t.warningsTitle}</strong>
+            <ul style={{ margin: '0.25rem 0 0 1.25rem' }}>
+              {warnings.map((w, idx) => (
+                <li key={idx}>{w}</li>
+              ))}
+            </ul>
+          </div>
         </div>
       )}
 
       <div className="table-wrapper">
-        <table className="results-table" aria-label="Extracted Laboratory Results">
+        <table className="results-table" aria-label={t.resultsTitle}>
           <thead>
             <tr>
-              <th scope="col">Test / Analyte</th>
-              <th scope="col">Observed Value</th>
-              <th scope="col">Unit</th>
-              <th scope="col">Reference Interval</th>
-              <th scope="col">Indicator</th>
+              <th scope="col">{t.tableHeaderTest}</th>
+              <th scope="col">{t.tableHeaderValue}</th>
+              <th scope="col">{t.tableHeaderUnit}</th>
+              <th scope="col">{t.tableHeaderRefRange}</th>
+              <th scope="col">{t.tableHeaderStatus}</th>
             </tr>
           </thead>
           <tbody>
@@ -107,8 +120,9 @@ export const ObservationTable: React.FC<ObservationTableProps> = ({
                   <span className="test-name">{obs.test_name}</span>
                   {obs.code && <span className="test-code">({obs.code})</span>}
                   {obs.needs_review && (
-                    <div style={{ fontSize: '0.75rem', color: 'var(--color-status-flag)', marginTop: '2px' }}>
-                      ⚠ {obs.review_reason || 'Requires physician verification'}
+                    <div style={{ fontSize: '0.75rem', color: 'var(--color-status-flag)', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <AlertShieldIcon size={14} color="var(--color-status-flag)" />
+                      <span>{obs.review_reason || t.reviewRequiredNotice}</span>
                     </div>
                   )}
                 </td>
