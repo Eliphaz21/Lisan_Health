@@ -62,17 +62,17 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       color: '#1F2937',
       display: 'flex',
       flexDirection: 'column',
-      padding: '1.5rem',
+      padding: '1.25rem 1.5rem',
       position: 'relative',
     }}>
       {/* Top Bar with ONLY Back Arrow */}
       <div style={{
-        maxWidth: '1000px',
+        maxWidth: '960px',
         width: '100%',
         margin: '0 auto',
         display: 'flex',
         alignItems: 'center',
-        paddingBottom: '1rem',
+        paddingBottom: '0.75rem',
       }}>
         <Link
           to="/"
@@ -81,62 +81,77 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: '40px',
-            height: '40px',
+            width: '38px',
+            height: '38px',
             borderRadius: '50%',
             color: '#1F2937',
             backgroundColor: '#FFFFFF',
             border: '1px solid #E5E7EB',
             textDecoration: 'none',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
             transition: 'background-color 0.2s',
           }}
         >
-          <ArrowLeftIcon size={20} color="#1F2937" />
+          <ArrowLeftIcon size={18} color="#1F2937" />
         </Link>
       </div>
 
-      {/* Main Centered White Card */}
+      {/* Main Centered Content */}
       <div style={{
         flex: 1,
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
+        padding: '0.5rem 0 2rem',
       }}>
+        {/* Logo OUTSIDE the Card */}
+        <Link
+          to="/"
+          aria-label="LisanHealth Home"
+          style={{
+            display: 'inline-block',
+            marginBottom: '1.25rem',
+            textDecoration: 'none',
+          }}
+        >
+          <img
+            src="/logo.png"
+            alt="LisanHealth Logo"
+            style={{
+              width: '50px',
+              height: '50px',
+              borderRadius: '50%',
+              objectFit: 'contain',
+              display: 'block',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+            }}
+          />
+        </Link>
+
+        {/* Compact Proportional White Card */}
         <div style={{
           width: '100%',
-          maxWidth: '420px',
+          maxWidth: '380px',
           backgroundColor: '#FFFFFF',
           border: '1px solid #E5E7EB',
-          borderRadius: '16px',
-          padding: '2.5rem 2rem',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+          borderRadius: '14px',
+          padding: '1.75rem 1.75rem',
+          boxShadow: '0 4px 18px rgba(0, 0, 0, 0.04)',
         }}>
-          {/* Logo on Above */}
-          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-            <img
-              src="/logo.png"
-              alt="LisanHealth Logo"
-              style={{
-                width: '60px',
-                height: '60px',
-                borderRadius: '50%',
-                objectFit: 'contain',
-                display: 'inline-block',
-              }}
-            />
+          {/* Card Title & Subtitle */}
+          <div style={{ textAlign: 'center', marginBottom: '1.35rem' }}>
             <h1 style={{
-              fontSize: '1.5rem',
+              fontSize: '1.35rem',
               fontWeight: 700,
               color: '#111827',
-              marginTop: '1rem',
-              marginBottom: '0.35rem',
+              margin: '0 0 0.35rem',
               letterSpacing: '-0.01em',
             }}>
               Sign In
             </h1>
             <p style={{
-              fontSize: '0.875rem',
+              fontSize: '0.825rem',
               color: '#6B7280',
               margin: 0,
             }}>
@@ -150,10 +165,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               backgroundColor: '#FEF2F2',
               border: '1px solid #FCA5A5',
               borderRadius: '8px',
-              padding: '0.75rem 1rem',
-              marginBottom: '1.25rem',
+              padding: '0.65rem 0.85rem',
+              marginBottom: '1rem',
               color: '#DC2626',
-              fontSize: '0.85rem',
+              fontSize: '0.8rem',
               fontWeight: 500,
             }}>
               {error}
@@ -162,13 +177,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
           {/* Form */}
           <form onSubmit={handleSubmit}>
-            <div style={{ marginBottom: '1.25rem' }}>
+            <div style={{ marginBottom: '1rem' }}>
               <label style={{
                 display: 'block',
-                fontSize: '0.85rem',
+                fontSize: '0.825rem',
                 fontWeight: 600,
                 color: '#374151',
-                marginBottom: '0.5rem',
+                marginBottom: '0.4rem',
               }}>
                 Email
               </label>
@@ -181,19 +196,19 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                 autoComplete="email"
                 style={{
                   width: '100%',
-                  padding: '0.75rem 1rem',
+                  padding: '0.65rem 0.85rem',
                   backgroundColor: '#FFFFFF',
                   border: '1px solid #D1D5DB',
                   borderRadius: '8px',
                   color: '#111827',
-                  fontSize: '0.9rem',
+                  fontSize: '0.875rem',
                   outline: 'none',
                   transition: 'border-color 0.2s, box-shadow 0.2s',
                   boxSizing: 'border-box',
                 }}
                 onFocus={(e) => {
                   e.target.style.borderColor = '#25272C';
-                  e.target.style.boxShadow = '0 0 0 2px rgba(37, 39, 44, 0.1)';
+                  e.target.style.boxShadow = '0 0 0 2px rgba(37, 39, 44, 0.08)';
                 }}
                 onBlur={(e) => {
                   e.target.style.borderColor = '#D1D5DB';
@@ -202,13 +217,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               />
             </div>
 
-            <div style={{ marginBottom: '1.5rem' }}>
+            <div style={{ marginBottom: '1.25rem' }}>
               <label style={{
                 display: 'block',
-                fontSize: '0.85rem',
+                fontSize: '0.825rem',
                 fontWeight: 600,
                 color: '#374151',
-                marginBottom: '0.5rem',
+                marginBottom: '0.4rem',
               }}>
                 Password
               </label>
@@ -222,19 +237,19 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                   autoComplete="current-password"
                   style={{
                     width: '100%',
-                    padding: '0.75rem 2.5rem 0.75rem 1rem',
+                    padding: '0.65rem 2.4rem 0.65rem 0.85rem',
                     backgroundColor: '#FFFFFF',
                     border: '1px solid #D1D5DB',
                     borderRadius: '8px',
                     color: '#111827',
-                    fontSize: '0.9rem',
+                    fontSize: '0.875rem',
                     outline: 'none',
                     transition: 'border-color 0.2s, box-shadow 0.2s',
                     boxSizing: 'border-box',
                   }}
                   onFocus={(e) => {
                     e.target.style.borderColor = '#25272C';
-                    e.target.style.boxShadow = '0 0 0 2px rgba(37, 39, 44, 0.1)';
+                    e.target.style.boxShadow = '0 0 0 2px rgba(37, 39, 44, 0.08)';
                   }}
                   onBlur={(e) => {
                     e.target.style.borderColor = '#D1D5DB';
@@ -247,7 +262,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                   style={{
                     position: 'absolute',
-                    right: '10px',
+                    right: '8px',
                     background: 'transparent',
                     border: 'none',
                     color: '#9CA3AF',
@@ -257,7 +272,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                     padding: '4px',
                   }}
                 >
-                  {showPassword ? <EyeOffIcon size={18} color="#6B7280" /> : <EyeIcon size={18} color="#6B7280" />}
+                  {showPassword ? <EyeOffIcon size={16} color="#6B7280" /> : <EyeIcon size={16} color="#6B7280" />}
                 </button>
               </div>
             </div>
@@ -267,12 +282,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               disabled={loading}
               style={{
                 width: '100%',
-                padding: '0.75rem',
+                padding: '0.7rem',
                 backgroundColor: loading ? '#9CA3AF' : '#25272C',
                 color: '#FFFFFF',
                 border: 'none',
                 borderRadius: '8px',
-                fontSize: '0.95rem',
+                fontSize: '0.9rem',
                 fontWeight: 600,
                 cursor: loading ? 'not-allowed' : 'pointer',
                 transition: 'background-color 0.2s',
@@ -284,9 +299,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
           {/* Switch to Register */}
           <div style={{
-            marginTop: '1.75rem',
+            marginTop: '1.25rem',
             textAlign: 'center',
-            fontSize: '0.875rem',
+            fontSize: '0.825rem',
             color: '#6B7280',
           }}>
             Don't have an account?{' '}
