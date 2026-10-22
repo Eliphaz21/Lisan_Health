@@ -36,11 +36,43 @@ async function runTests() {
   assert(adminUser !== null, `Admin user exists for ${adminEmail}`);
   assert(adminUser?.role === "ADMIN", `Admin user has role ADMIN`);
 
+  // 2b. Test Custom Admin Password Claim via updateUserPasswordAndProfile
+  const customAdminPassword = "AdminSecure@2026!";
+  const customHash = await bcrypt.hash(customAdminPassword, 12);
+  const updatedAdmin = await db.updateUserPasswordAndProfile(adminUser!.id, {
+    fullName: "System Lead Admin",
+    passwordHash: customHash,
+    role: "ADMIN",
+    isActive: true,
+  });
+  assert(updatedAdmin.role === "ADMIN", "Admin retains ADMIN role after custom password claim");
+  const isCustomAdminMatch = await bcrypt.compare(customAdminPassword, updatedAdmin.password_hash);
+  assert(isCustomAdminMatch, "Admin successfully authenticates with custom password");
+
+  // 2c. Test Strict Schema Validation Rules
+  const weakPasswordTest = {
+    email: "test@example.com",
+    full_name: "Test User",
+    password: "123", // too short, no uppercase, no symbol
+  };
+  const { RegisterSchema } = await import("./schemas/auth.schema");
+  const weakResult = RegisterSchema.safeParse(weakPasswordTest);
+  assert(!weakResult.success, "Strict schema rejects weak password (< 8 chars, missing complexity)");
+
+  const injectedPropertyTest = {
+    email: "test@example.com",
+    full_name: "Valid User",
+    password: "ValidPassword123!",
+    role: "ADMIN", // Malicious injected property attempting privilege escalation
+  };
+  const injectedResult = RegisterSchema.safeParse(injectedPropertyTest);
+  assert(!injectedResult.success, "Strict schema rejects unauthorized injected attributes (anti-privilege escalation)");
+
   // 3. Test Regular User Creation
   const regularEmail = "patient.test@example.com";
   let regularUser = await db.findUserByEmail(regularEmail);
   if (!regularUser) {
-    const hash = await bcrypt.hash("Password123!", 10);
+    const hash = await bcrypt.hash("Password123!", 12);
     regularUser = await db.createUser({
       email: regularEmail,
       fullName: "Abebe Bikila",

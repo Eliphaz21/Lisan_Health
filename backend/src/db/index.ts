@@ -170,6 +170,39 @@ export const db = {
     return user;
   },
 
+  async updateUserPasswordAndProfile(
+    id: string,
+    data: { fullName: string; passwordHash: string; role: "USER" | "ADMIN"; isActive: boolean }
+  ): Promise<UserRecord> {
+    const now = new Date();
+    if (isConnectedToPostgres) {
+      try {
+        const res = await pool.query(
+          "UPDATE users SET full_name = $1, password_hash = $2, role = $3, is_active = $4, updated_at = NOW() WHERE id = $5 RETURNING *",
+          [data.fullName, data.passwordHash, data.role, data.isActive, id]
+        );
+        if (res.rows.length > 0) {
+          const updated = res.rows[0];
+          memoryStore.users.set(updated.email.toLowerCase(), updated);
+          return updated;
+        }
+      } catch (err) {
+        console.warn("[Database] Fallback update to memory:", err);
+      }
+    }
+    for (const [email, u] of memoryStore.users.entries()) {
+      if (u.id === id) {
+        u.full_name = data.fullName;
+        u.password_hash = data.passwordHash;
+        u.role = data.role;
+        u.is_active = data.isActive;
+        u.updated_at = now;
+        return u;
+      }
+    }
+    throw new Error("User record not found");
+  },
+
   async listAllUsers(): Promise<UserRecord[]> {
     if (isConnectedToPostgres) {
       try {

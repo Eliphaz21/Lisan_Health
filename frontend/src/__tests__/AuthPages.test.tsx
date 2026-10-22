@@ -188,10 +188,10 @@ describe('Dedicated Auth Pages Tests', () => {
         target: { value: 'abebe@example.com' },
       });
       fireEvent.change(screen.getByPlaceholderText(/Create a password/i), {
-        target: { value: 'Pass1234' },
+        target: { value: 'ValidPass123!' },
       });
       fireEvent.change(screen.getByPlaceholderText('Confirm your password'), {
-        target: { value: 'DifferentPass' },
+        target: { value: 'DifferentPass123!' },
       });
 
       fireEvent.click(screen.getByRole('button', { name: 'Create Account' }));
@@ -216,10 +216,10 @@ describe('Dedicated Auth Pages Tests', () => {
         target: { value: 'abebe@example.com' },
       });
       fireEvent.change(screen.getByPlaceholderText(/Create a password/i), {
-        target: { value: 'ValidPass123' },
+        target: { value: 'ValidPass123!' },
       });
       fireEvent.change(screen.getByPlaceholderText('Confirm your password'), {
-        target: { value: 'ValidPass123' },
+        target: { value: 'ValidPass123!' },
       });
 
       fireEvent.click(screen.getByRole('button', { name: 'Create Account' }));

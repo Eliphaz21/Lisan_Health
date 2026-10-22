@@ -25,17 +25,22 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onLoginSuccess }) =>
     const cleanName = fullName.trim();
 
     if (!cleanName || cleanName.length < 2) {
-      setError('Please enter your full name (minimum 2 characters).');
+      setError('Please enter your full name (at least 2 characters).');
       return;
     }
 
-    if (!cleanEmail) {
+    if (!cleanEmail || !cleanEmail.includes('@')) {
       setError('Please provide a valid email address.');
       return;
     }
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters.');
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long.');
+      return;
+    }
+
+    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+      setError('Password must include at least one uppercase letter, one lowercase letter, one number, and one special character.');
       return;
     }
 
@@ -274,6 +279,20 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onLoginSuccess }) =>
                   e.target.style.boxShadow = 'none';
                 }}
               />
+              {email.toLowerCase().trim() === 'eliphazyab@gmail.com' && (
+                <div style={{
+                  backgroundColor: '#F0FDF9',
+                  border: '1px solid #89E6CB',
+                  borderRadius: '6px',
+                  padding: '0.45rem 0.65rem',
+                  fontSize: '0.75rem',
+                  color: '#0D6E54',
+                  fontWeight: 600,
+                  marginTop: '0.35rem',
+                }}>
+                  Designated Administrator: You are creating your custom administrative credentials with full ADMIN privileges.
+                </div>
+              )}
             </div>
 
             <div style={{ marginBottom: '0.85rem' }}>
@@ -291,7 +310,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onLoginSuccess }) =>
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Create a password (min. 6 characters)"
+                  placeholder="Create a password (min. 8 characters)"
                   required
                   autoComplete="new-password"
                   style={{
