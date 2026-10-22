@@ -1,13 +1,27 @@
 import React from 'react';
 import type { HealthStatus, SupportedLanguage } from '../types/report';
+import type { User } from '../types/auth';
 import { translations } from '../utils/i18n';
 
 interface NavbarProps {
   health: HealthStatus | null;
   language: SupportedLanguage;
+  user: User | null;
+  onOpenAuth: () => void;
+  onOpenAdmin: () => void;
+  onOpenHistory: () => void;
+  onLogout: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ health, language }) => {
+export const Navbar: React.FC<NavbarProps> = ({
+  health,
+  language,
+  user,
+  onOpenAuth,
+  onOpenAdmin,
+  onOpenHistory,
+  onLogout,
+}) => {
   const t = translations[language];
 
   return (
@@ -32,17 +46,18 @@ export const Navbar: React.FC<NavbarProps> = ({ health, language }) => {
           </div>
         </a>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          {/* Health Status Badge */}
           {health ? (
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.45rem',
-                fontSize: '0.8rem',
+                fontSize: '0.75rem',
                 color: 'var(--color-text-muted)',
                 background: 'var(--color-bg-base)',
-                padding: '0.35rem 0.75rem',
+                padding: '0.3rem 0.65rem',
                 borderRadius: 'var(--radius-full)',
                 border: '1px solid var(--color-border)',
                 fontWeight: 600,
@@ -66,10 +81,10 @@ export const Navbar: React.FC<NavbarProps> = ({ health, language }) => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.45rem',
-                fontSize: '0.8rem',
+                fontSize: '0.75rem',
                 color: 'var(--color-status-flag)',
                 background: 'var(--color-status-flag-bg)',
-                padding: '0.35rem 0.75rem',
+                padding: '0.3rem 0.65rem',
                 borderRadius: 'var(--radius-full)',
                 fontWeight: 600,
               }}
@@ -85,6 +100,82 @@ export const Navbar: React.FC<NavbarProps> = ({ health, language }) => {
               />
               <span>{t.apiConnecting}</span>
             </div>
+          )}
+
+          {/* User Logged In Actions */}
+          {user ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <button
+                onClick={onOpenHistory}
+                style={{
+                  background: 'transparent',
+                  border: '1px solid var(--color-border)',
+                  color: 'var(--color-text-primary)',
+                  padding: '0.35rem 0.75rem',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                My History
+              </button>
+
+              {user.role === 'ADMIN' && (
+                <button
+                  onClick={onOpenAdmin}
+                  style={{
+                    background: 'rgba(184, 247, 228, 0.15)',
+                    border: '1px solid #B8F7E4',
+                    color: '#B8F7E4',
+                    padding: '0.35rem 0.75rem',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Admin Panel
+                </button>
+              )}
+
+              <span style={{ fontSize: '0.8rem', color: '#A0A6B1', fontWeight: 600, marginLeft: '0.25rem' }}>
+                {user.full_name.split(' ')[0]}
+              </span>
+
+              <button
+                onClick={onLogout}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#8A8F98',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  padding: '0.25rem 0.5rem',
+                }}
+                title="Sign Out"
+              >
+                Sign Out
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={onOpenAuth}
+              style={{
+                background: '#B8F7E4',
+                color: '#15171B',
+                border: 'none',
+                padding: '0.4rem 0.9rem',
+                borderRadius: 'var(--radius-md)',
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'opacity 0.2s',
+              }}
+            >
+              Sign In
+            </button>
           )}
         </div>
       </div>

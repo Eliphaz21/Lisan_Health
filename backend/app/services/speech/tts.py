@@ -121,7 +121,7 @@ class TTSService:
 
         # 2. Production Addis AI API call if API key configured
         audio_bytes: Optional[bytes] = None
-        if self.api_key and settings.ENVIRONMENT == "production":
+        if self.api_key:
             audio_bytes = await self._call_addis_ai_tts(
                 text=request.text,
                 language=lang,

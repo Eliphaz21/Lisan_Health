@@ -534,6 +534,7 @@ class RESTAddisAIProvider(AddisAIProvider):
 
 def get_addis_ai_provider() -> AddisAIProvider:
     """Factory returns REST provider if configured, otherwise deterministic mock provider."""
-    if settings.ADDIS_AI_API_KEY and settings.ENVIRONMENT == "production":
+    if settings.ADDIS_AI_API_KEY:
         return RESTAddisAIProvider()
     return MockAddisAIProvider()
+

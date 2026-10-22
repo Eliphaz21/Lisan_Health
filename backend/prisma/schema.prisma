@@ -1,0 +1,57 @@
+// Prisma Schema for LisanHealth
+// Target: PostgreSQL 17 on AletCloud with Prisma ORM
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id           String         @id @default(uuid())
+  email        String         @unique
+  fullName     String         @map("full_name")
+  passwordHash String         @map("password_hash")
+  role         Role           @default(USER)
+  isActive     Boolean        @default(true) @map("is_active")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+  reports      ReportRecord[]
+
+  @@map("users")
+}
+
+model ReportRecord {
+  id                 String   @id @default(uuid())
+  userId             String   @map("user_id")
+  originalFileName   String?  @map("original_file_name")
+  reportText         String?  @map("report_text")
+  extractedJson      Json     @map("extracted_json")
+  explanationJson    Json     @map("explanation_json")
+  localizedAmharic   Json?    @map("localized_amharic")
+  localizedOromo     Json?    @map("localized_oromo")
+  audioAmharicUrl    String?  @map("audio_amharic_url")
+  audioOromoUrl      String?  @map("audio_oromo_url")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("report_records")
+}
+
+model SystemConfig {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("system_configs")
+}
