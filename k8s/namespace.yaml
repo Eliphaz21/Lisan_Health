@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: lisan-health
-  labels:
-    app.kubernetes.io/name: lisan-health
-    app.kubernetes.io/part-of: lisan-health-platform

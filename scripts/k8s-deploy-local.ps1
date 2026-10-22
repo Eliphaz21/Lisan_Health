@@ -32,16 +32,16 @@ if ($hasKind) {
     }
 
     if (-not $existingCluster) {
-        Write-Host "Creating Kind cluster '$ClusterName' from k8s/kind-config.yaml..." -ForegroundColor Green
-        kind create cluster --config k8s/kind-config.yaml
+        Write-Host "Creating Kind cluster '$ClusterName' from infrastructure/k8s/kind/kind-config.yaml..." -ForegroundColor Green
+        kind create cluster --config infrastructure/k8s/kind/kind-config.yaml
     } else {
         Write-Host "Kind cluster '$ClusterName' is already running." -ForegroundColor Green
     }
 }
 
 if ($hasKubectl) {
-    Write-Host "Applying Kubernetes manifests via Kustomize (k8s/)..." -ForegroundColor Green
-    kubectl apply -k k8s/
+    Write-Host "Applying Kubernetes manifests via Kustomize (infrastructure/k8s/overlays/dev/)..." -ForegroundColor Green
+    kubectl apply -k infrastructure/k8s/overlays/dev/
 
     Write-Host "Checking rollout status for lisan-backend..." -ForegroundColor Cyan
     kubectl rollout status deployment/lisan-backend -n lisan-health --timeout=60s

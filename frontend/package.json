@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "test": "vitest run",
+    "test": "node --max-old-space-size=2048 ./node_modules/vitest/vitest.mjs run",
     "test:watch": "vitest",
     "preview": "vite preview"
   },
