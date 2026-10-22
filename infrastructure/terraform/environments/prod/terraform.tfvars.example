@@ -1,0 +1,2 @@
+# Production Terraform variables example
+aws_region = "af-south-1"
