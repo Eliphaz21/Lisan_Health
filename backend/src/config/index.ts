@@ -4,6 +4,17 @@ import path from "path";
 // Load environment variables from .env in project root
 dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
+function resolveDatabaseUrl(rawUrl?: string): string {
+  if (!rawUrl) return "postgresql://admin_lisan_health:postgres@196.190.212.135:54382/lisan_health?sslmode=prefer";
+  let url = rawUrl.trim();
+  // Automatically route internal AletCloud cluster host to external public IP when running outside K8s
+  if (url.includes("lisan-health-rw.db-947.svc.cluster.local") && !process.env.KUBERNETES_SERVICE_HOST) {
+    url = url.replace("lisan-health-rw.db-947.svc.cluster.local:5432", "196.190.212.135:54382")
+             .replace("lisan-health-rw.db-947.svc.cluster.local", "196.190.212.135:54382");
+  }
+  return url;
+}
+
 export const config = {
   env: process.env.NODE_ENV || process.env.ENVIRONMENT || "development",
   port: parseInt(process.env.APP_PORT || process.env.PORT || "8000", 10),
@@ -15,7 +26,7 @@ export const config = {
   adminEmail: (process.env.ADMIN_EMAIL || "eliphazyab@gmail.com").toLowerCase().trim(),
 
   // Database
-  databaseUrl: process.env.DATABASE_URL || "postgresql://admin_lisan_health:postgres@196.190.212.135:54382/lisan_health?sslmode=prefer",
+  databaseUrl: resolveDatabaseUrl(process.env.DATABASE_URL),
 
   // Addis AI Provider
   addisAi: {
