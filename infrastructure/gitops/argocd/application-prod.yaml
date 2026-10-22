@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: lisan-health-prod
+  namespace: argocd
+  labels:
+    environment: prod
+spec:
+  project: lisan-health-project
+  source:
+    repoURL: "https://github.com/Eliphaz21/Lisan_Health.git"
+    targetRevision: main
+    path: infrastructure/k8s/overlays/prod
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: lisan-health
+  syncPolicy:
+    automated:
+      prune: false # Manual prune for production safety gate
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

@@ -1,0 +1,29 @@
+groups:
+  - name: lisan-health-alerts
+    rules:
+      - alert: BackendServiceDown
+        expr: up{job="lisan-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "LisanHealth backend instance down"
+          description: "Backend pod {{ $labels.instance }} has been unreachable for more than 1 minute."
+
+      - alert: HighHttp5xxRate
+        expr: rate(http_requests_total{status=~"5.."}[2m]) / rate(http_requests_total[2m]) > 0.02
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Elevated HTTP 5xx errors on LisanHealth API"
+          description: "HTTP 5xx error rate exceeds 2% over the last 2 minutes."
+
+      - alert: HighP95Latency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1.5
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High p95 API response latency"
+          description: "95th percentile request latency exceeds 1.5 seconds for 3 consecutive minutes."

@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: lisan-health-project
+  namespace: argocd
+spec:
+  description: "LisanHealth Multilingual Medical Explainer Platform"
+  sourceRepos:
+    - "https://github.com/Eliphaz21/Lisan_Health.git"
+  destinations:
+    - namespace: "lisan-health"
+      server: "https://kubernetes.default.svc"
+    - namespace: "dev-lisan-health"
+      server: "https://kubernetes.default.svc"
+    - namespace: "prod-lisan-health"
+      server: "https://kubernetes.default.svc"
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"

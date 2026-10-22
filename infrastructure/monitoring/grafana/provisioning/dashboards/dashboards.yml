@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: "LisanHealth Dashboards"
+    orgId: 1
+    folder: "LisanHealth"
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /etc/grafana/provisioning/dashboards
