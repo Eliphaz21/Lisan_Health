@@ -225,6 +225,50 @@ class MockAddisAIProvider(AddisAIProvider):
         },
     }
 
+    @classmethod
+    def _match_panel_name(cls, panel_name: str, language_dict: Dict[str, str]) -> str:
+        if panel_name in language_dict:
+            return language_dict[panel_name]
+        p_lower = panel_name.lower()
+        if "blood" in p_lower or "cbc" in p_lower:
+            for k, v in language_dict.items():
+                if "blood" in k.lower() or "cbc" in k.lower():
+                    return v
+        if "lipid" in p_lower or "cholesterol" in p_lower:
+            for k, v in language_dict.items():
+                if "lipid" in k.lower():
+                    return v
+        if "metabolic" in p_lower or "cmp" in p_lower or "bmp" in p_lower:
+            for k, v in language_dict.items():
+                if "metabolic" in k.lower():
+                    return v
+        return panel_name
+
+    @classmethod
+    def _find_analyte_dict(cls, test_name: str, code: Optional[str], analyte_dict: Dict[str, dict]) -> Optional[dict]:
+        if test_name in analyte_dict:
+            return analyte_dict[test_name]
+        if code:
+            code_upper = code.upper()
+            code_mapping = {
+                "HGB": "Hemoglobin",
+                "HCT": "Hematocrit",
+                "WBC": "White Blood Cells",
+                "PLT": "Platelets",
+                "CHOL": "Total Cholesterol",
+                "LDL": "LDL Cholesterol",
+                "HDL": "HDL Cholesterol",
+                "TRIG": "Triglycerides",
+            }
+            mapped = code_mapping.get(code_upper)
+            if mapped and mapped in analyte_dict:
+                return analyte_dict[mapped]
+        name_lower = test_name.lower()
+        for k, v in analyte_dict.items():
+            if k.lower() in name_lower:
+                return v
+        return None
+
     async def localize(
         self,
         explanation: EnglishClinicalExplanation,
@@ -263,11 +307,12 @@ class MockAddisAIProvider(AddisAIProvider):
             return result
 
         elif lang == "am":
-            panel = self.AMHARIC_PANELS.get(explanation.panel_name, explanation.panel_name)
+            panel = self._match_panel_name(explanation.panel_name, self.AMHARIC_PANELS)
             localized_analytes = []
 
             for a in explanation.analyte_explanations:
-                item_dict = self.AMHARIC_ANALYTES.get(a.test_name)
+                item_dict = self._find_analyte_dict(a.test_name, a.code, self.AMHARIC_ANALYTES)
+
                 if item_dict:
                     loc_name = item_dict["name"]
                     loc_measure = item_dict["measure"]
@@ -340,11 +385,11 @@ class MockAddisAIProvider(AddisAIProvider):
             return result
 
         elif lang == "om":
-            panel = self.OROMO_PANELS.get(explanation.panel_name, explanation.panel_name)
+            panel = self._match_panel_name(explanation.panel_name, self.OROMO_PANELS)
             localized_analytes = []
 
             for a in explanation.analyte_explanations:
-                item_dict = self.OROMO_ANALYTES.get(a.test_name)
+                item_dict = self._find_analyte_dict(a.test_name, a.code, self.OROMO_ANALYTES)
                 if item_dict:
                     loc_name = item_dict["name"]
                     loc_measure = item_dict["measure"]

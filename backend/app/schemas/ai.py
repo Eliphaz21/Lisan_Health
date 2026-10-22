@@ -1,6 +1,6 @@
 from typing import List, Optional
 from pydantic import BaseModel, Field
-from backend.app.schemas.report import ObservationFlag
+from backend.app.schemas.report import ObservationFlag, ExtractedLabReport
 
 
 class AnalyteExplanation(BaseModel):
@@ -92,4 +92,25 @@ class LocalizationRequest(BaseModel):
         default="am",
         description="Target language code: 'am' (Amharic), 'om' (Afaan Oromoo), or 'en' (English)"
     )
+
+
+class PipelineProcessRequest(BaseModel):
+    """Payload to trigger the complete Dual-AI sequential pipeline."""
+    report: Optional[ExtractedLabReport] = Field(
+        default=None,
+        description="Structured extracted lab report if already parsed"
+    )
+    raw_text: Optional[str] = Field(
+        default=None,
+        description="Raw lab report text to be deterministically extracted and explained"
+    )
+    report_id: Optional[str] = Field(
+        default="RPT-001",
+        description="Report identifier"
+    )
+    target_language: str = Field(
+        default="am",
+        description="Target language code: 'am' (Amharic), 'om' (Afaan Oromoo), or 'en' (English)"
+    )
+
 
