@@ -4,7 +4,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app.core.config import settings
 from backend.app.api.v1.router import api_router
-from backend.app.db.session import init_db
 
 
 @asynccontextmanager
@@ -13,8 +12,6 @@ async def lifespan(app: FastAPI):
     # Ensure local storage directories exist on startup
     Path(settings.UPLOAD_DIR).mkdir(parents=True, exist_ok=True)
     Path(settings.AUDIO_OUTPUT_DIR).mkdir(parents=True, exist_ok=True)
-    # Initialize database tables and seed administrator
-    await init_db()
     yield
 
 
