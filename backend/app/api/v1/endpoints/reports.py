@@ -3,9 +3,17 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
 
 from backend.app.schemas.report import ExtractedLabReport
-from backend.app.schemas.ai import EnglishClinicalExplanation
+from backend.app.schemas.ai import (
+    EnglishClinicalExplanation,
+    LocalizedReportExplanation,
+    LocalizationRequest,
+)
 from backend.app.services.extractor import DeterministicExtractor
 from backend.app.services.ai.reasoning_provider import get_reasoning_provider
+from backend.app.services.ai.addis_ai import (
+    get_addis_ai_provider,
+    LocalizationInvariantError,
+)
 
 router = APIRouter(prefix="/reports", tags=["Report Processing"])
 
@@ -75,3 +83,32 @@ async def explain_report_in_english(report: ExtractedLabReport) -> EnglishClinic
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Clinical reasoning failed: {str(e)}"
         )
+
+
+@router.post(
+    "/localize",
+    response_model=LocalizedReportExplanation,
+    status_code=status.HTTP_200_OK,
+    summary="Localize Clinical Explanation (Addis AI)",
+    description="Translates and culturally adapts an English clinical explanation into Amharic, Afaan Oromoo, or verified English."
+)
+async def localize_report_explanation(request: LocalizationRequest) -> LocalizedReportExplanation:
+    """Invokes AI Provider B (Addis AI) for Ethiopian localization."""
+    try:
+        provider = get_addis_ai_provider()
+        localized = await provider.localize(
+            explanation=request.explanation,
+            target_language=request.target_language
+        )
+        return localized
+    except (ValueError, LocalizationInvariantError) as err:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Localization rejected: {str(err)}"
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Localization service error: {str(exc)}"
+        )
+
