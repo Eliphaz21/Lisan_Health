@@ -41,7 +41,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 (ልሳን ጤና)
               </span>
             </span>
-            <span className="brand-subtitle">{t.tagline}</span>
           </div>
         </Link>
 
