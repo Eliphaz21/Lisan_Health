@@ -25,25 +25,27 @@ describe('ObservationTable Component', () => {
     },
   ];
 
-  it('renders panel name and observation count', () => {
+  it('renders panel name and observation count in English', () => {
     render(
       <ObservationTable
         observations={sampleObservations}
         panelName="Complete Blood Count"
         status="EXTRACTED"
+        language="en"
       />
     );
 
     expect(screen.getByText('Complete Blood Count')).toBeInTheDocument();
-    expect(screen.getByText('2 Analyte Measurements Extracted')).toBeInTheDocument();
+    expect(screen.getByText('2 Analyte measurements extracted')).toBeInTheDocument();
   });
 
-  it('renders observation rows with test values and units', () => {
+  it('renders observation rows with test values and units in English', () => {
     render(
       <ObservationTable
         observations={sampleObservations}
         panelName="Complete Blood Count"
         status="EXTRACTED"
+        language="en"
       />
     );
 
@@ -54,6 +56,36 @@ describe('ObservationTable Component', () => {
     expect(screen.getByText('Normal')).toBeInTheDocument();
   });
 
+  it('renders observation rows localized in Amharic', () => {
+    render(
+      <ObservationTable
+        observations={sampleObservations}
+        panelName="Complete Blood Count"
+        status="EXTRACTED"
+        language="am"
+      />
+    );
+
+    expect(screen.getByText('2 የተተነተኑ የላብራቶሪ ውጤቶች')).toBeInTheDocument();
+    expect(screen.getByText('ዝቅተኛ')).toBeInTheDocument(); // Low
+    expect(screen.getByText('መደበኛ')).toBeInTheDocument(); // Normal
+  });
+
+  it('renders observation rows localized in Afaan Oromoo', () => {
+    render(
+      <ObservationTable
+        observations={sampleObservations}
+        panelName="Complete Blood Count"
+        status="EXTRACTED"
+        language="om"
+      />
+    );
+
+    expect(screen.getByText('2 Safartuuwwan qorannoo argaman')).toBeInTheDocument();
+    expect(screen.getByText('Gadi-aanaa')).toBeInTheDocument(); // Low
+    expect(screen.getByText('Idilee')).toBeInTheDocument(); // Normal
+  });
+
   it('displays extraction warnings when provided', () => {
     render(
       <ObservationTable
@@ -61,10 +93,11 @@ describe('ObservationTable Component', () => {
         panelName="Complete Blood Count"
         status="NEEDS_REVIEW"
         warnings={['Uncertain reference interval on source report']}
+        language="en"
       />
     );
 
-    expect(screen.getByText('Extraction Warnings:')).toBeInTheDocument();
+    expect(screen.getByText('Extraction Notice:')).toBeInTheDocument();
     expect(screen.getByText('Uncertain reference interval on source report')).toBeInTheDocument();
   });
 });
