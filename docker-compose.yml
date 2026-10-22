@@ -1,0 +1,66 @@
+services:
+  # ----------------------------------------------------------------------------
+  # Backend Microservice (FastAPI + Pydantic + Pytest)
+  # ----------------------------------------------------------------------------
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: lisan-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      - LOG_LEVEL=INFO
+      - APP_HOST=0.0.0.0
+      - APP_PORT=8000
+      - FRONTEND_URL=http://localhost:3000
+      - UPLOAD_DIR=/app/storage/uploads
+      - AUDIO_OUTPUT_DIR=/app/storage/audio
+      - REASONING_PROVIDER=mock
+      - ADDIS_AI_BASE_URL=https://api.addisassistant.com/v1
+    volumes:
+      - lisan-storage:/app/storage
+    networks:
+      - lisan-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+
+  # ----------------------------------------------------------------------------
+  # Frontend Web Client & Reverse Proxy (Vite React + Nginx Alpine)
+  # ----------------------------------------------------------------------------
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: lisan-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - lisan-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/nginx-health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+
+# ------------------------------------------------------------------------------
+# Persistent Volumes & Private Network
+# ------------------------------------------------------------------------------
+volumes:
+  lisan-storage:
+    driver: local
+
+networks:
+  lisan-net:
+    driver: bridge
