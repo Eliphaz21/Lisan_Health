@@ -39,3 +39,31 @@ export interface SavedReportItem {
   audio_oromo_url?: string;
   created_at: string;
 }
+
+export interface AuditLogItem {
+  id: string;
+  action: string;
+  actor_email: string;
+  details?: string;
+  ip_address?: string;
+  created_at: string;
+}
+
+export interface AiConfigData {
+  active_provider: "addis_ai" | "gemini_ai" | "hybrid" | "mock";
+  addis_ai: {
+    base_url: string;
+    api_key_configured: boolean;
+    api_key_masked: string;
+    model: string;
+    tts_enabled: boolean;
+    voice_amharic: string;
+    voice_oromo: string;
+  };
+  gemini_ai: {
+    api_key_configured: boolean;
+    api_key_masked: string;
+    model: string;
+  };
+}
+

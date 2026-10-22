@@ -8,7 +8,7 @@ interface NavbarProps {
   health: HealthStatus | null;
   language: SupportedLanguage;
   user: User | null;
-  onOpenAdmin: () => void;
+  onOpenAdmin?: () => void;
   onOpenHistory: () => void;
   onLogout: () => void;
 }
@@ -17,7 +17,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   health,
   language,
   user,
-  onOpenAdmin,
+  onOpenAdmin: _onOpenAdmin,
   onOpenHistory,
   onLogout,
 }) => {
@@ -120,8 +120,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
 
               {user.role === 'ADMIN' && (
-                <button
-                  onClick={onOpenAdmin}
+                <Link
+                  to="/admin"
                   style={{
                     background: 'rgba(184, 247, 228, 0.15)',
                     border: '1px solid #B8F7E4',
@@ -130,11 +130,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                     borderRadius: 'var(--radius-md)',
                     fontSize: '0.8rem',
                     fontWeight: 700,
+                    textDecoration: 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
                     cursor: 'pointer',
                   }}
                 >
                   Admin Panel
-                </button>
+                </Link>
               )}
 
               <span style={{ fontSize: '0.8rem', color: '#A0A6B1', fontWeight: 600, marginLeft: '0.25rem' }}>

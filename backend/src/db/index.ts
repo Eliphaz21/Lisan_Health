@@ -15,14 +15,24 @@ export const pool = new Pool({
     : false,
 });
 
-let isConnectedToPostgres = false;
+export interface AuditLogRecord {
+  id: string;
+  action: string;
+  actor_email: string;
+  details?: string;
+  ip_address?: string;
+  created_at: Date;
+}
 
 // In-memory fallback storage in case remote database is temporarily unreachable
 const memoryStore = {
   users: new Map<string, UserRecord>(),
   reports: new Map<string, SavedReport>(),
   configs: new Map<string, string>(),
+  auditLogs: [] as AuditLogRecord[],
 };
+
+let isConnectedToPostgres = false;
 
 export async function initDb(): Promise<void> {
   try {
@@ -61,6 +71,15 @@ export async function initDb(): Promise<void> {
         key VARCHAR(128) UNIQUE NOT NULL,
         value TEXT NOT NULL,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS audit_logs (
+        id VARCHAR(64) PRIMARY KEY,
+        action VARCHAR(64) NOT NULL,
+        actor_email VARCHAR(255) NOT NULL,
+        details TEXT,
+        ip_address VARCHAR(64),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
     `);
 
@@ -382,5 +401,95 @@ export const db = {
       return true;
     }
     return false;
+  },
+
+  async logAudit(action: string, actorEmail: string, details?: string, ipAddress?: string): Promise<AuditLogRecord> {
+    const id = uuidv4();
+    const now = new Date();
+    const record: AuditLogRecord = {
+      id,
+      action,
+      actor_email: actorEmail,
+      details,
+      ip_address: ipAddress,
+      created_at: now,
+    };
+    if (isConnectedToPostgres) {
+      try {
+        await pool.query(
+          "INSERT INTO audit_logs (id, action, actor_email, details, ip_address, created_at) VALUES ($1, $2, $3, $4, $5, $6)",
+          [id, action, actorEmail, details || null, ipAddress || null, now]
+        );
+        return record;
+      } catch (err) {
+        console.warn("[Database] Fallback audit log to memory:", err);
+      }
+    }
+    memoryStore.auditLogs.unshift(record);
+    if (memoryStore.auditLogs.length > 200) {
+      memoryStore.auditLogs.pop();
+    }
+    return record;
+  },
+
+  async listAuditLogs(limit = 100): Promise<AuditLogRecord[]> {
+    if (isConnectedToPostgres) {
+      try {
+        const res = await pool.query(
+          "SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT $1",
+          [limit]
+        );
+        return res.rows;
+      } catch {
+        // fallback
+      }
+    }
+    return memoryStore.auditLogs.slice(0, limit);
+  },
+
+  async getSystemConfig(key: string): Promise<string | null> {
+    if (isConnectedToPostgres) {
+      try {
+        const res = await pool.query("SELECT value FROM system_configs WHERE key = $1", [key]);
+        if (res.rows.length > 0) return res.rows[0].value;
+      } catch {
+        // fallback
+      }
+    }
+    return memoryStore.configs.get(key) || null;
+  },
+
+  async setSystemConfig(key: string, value: string): Promise<void> {
+    const id = uuidv4();
+    if (isConnectedToPostgres) {
+      try {
+        await pool.query(
+          "INSERT INTO system_configs (id, key, value, updated_at) VALUES ($1, $2, $3, NOW()) ON CONFLICT (key) DO UPDATE SET value = $3, updated_at = NOW()",
+          [id, key, value]
+        );
+      } catch (err) {
+        console.warn("[Database] Fallback system config to memory:", err);
+      }
+    }
+    memoryStore.configs.set(key, value);
+  },
+
+  async getAllSystemConfigs(): Promise<Record<string, string>> {
+    const map: Record<string, string> = {};
+    if (isConnectedToPostgres) {
+      try {
+        const res = await pool.query("SELECT key, value FROM system_configs");
+        for (const row of res.rows) {
+          map[row.key] = row.value;
+        }
+        return map;
+      } catch {
+        // fallback
+      }
+    }
+    for (const [k, v] of memoryStore.configs.entries()) {
+      map[k] = v;
+    }
+    return map;
   },
 };

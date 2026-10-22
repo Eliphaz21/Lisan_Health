@@ -6,6 +6,7 @@ import { HistoryModal } from './components/HistoryModal';
 import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
+import { AdminPage } from './pages/AdminPage';
 import type { ExtractedLabReport, HealthStatus, SupportedLanguage, LabObservation } from './types/report';
 import type { User } from './types/auth';
 
@@ -267,6 +268,11 @@ export const App: React.FC = () => {
                 <RegisterPage onLoginSuccess={handleLoginSuccess} />
               )
             }
+          />
+
+          <Route
+            path="/admin"
+            element={<AdminPage currentUser={user} token={token} />}
           />
 
           <Route path="*" element={<Navigate to="/" replace />} />
