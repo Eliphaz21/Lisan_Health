@@ -47,9 +47,9 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ language, explanationT
           type="button"
           onClick={() => setSpeed(speed === 1.0 ? 0.9 : 1.0)}
           style={{
-            background: 'rgba(255, 255, 255, 0.2)',
-            color: 'white',
-            border: 'none',
+            background: 'rgba(255, 255, 255, 0.1)',
+            color: 'var(--color-skymint)',
+            border: '1px solid var(--color-skymint)',
             borderRadius: 'var(--radius-full)',
             padding: '0.35rem 0.85rem',
             fontSize: '0.75rem',

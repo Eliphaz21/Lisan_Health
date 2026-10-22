@@ -181,12 +181,12 @@ export const App: React.FC = () => {
               language={currentLanguage}
             />
 
-            <div className="card" style={{ marginTop: '1.5rem', background: 'var(--color-primary-surface)', borderColor: 'var(--color-primary-light)' }}>
-              <h3 style={{ fontSize: '1.1rem', color: 'var(--color-primary-dark)', marginBottom: '0.65rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <StethoscopeIcon size={22} color="var(--color-primary-dark)" />
+            <div className="card card-doctor-questions" style={{ marginTop: '1.5rem' }}>
+              <h3 style={{ fontSize: '1.1rem', marginBottom: '0.65rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <StethoscopeIcon size={22} color="var(--color-graphite)" />
                 <span>{t.doctorQuestionsTitle}</span>
               </h3>
-              <ul style={{ margin: '0.25rem 0 0 1.25rem', color: 'var(--color-primary-dark)', fontSize: '0.9rem', lineHeight: 1.6 }}>
+              <ul style={{ margin: '0.25rem 0 0 1.25rem', color: 'var(--color-graphite)', fontSize: '0.9rem', lineHeight: 1.6 }}>
                 {t.doctorQuestions.map((q, idx) => (
                   <li key={idx} style={{ marginBottom: '0.35rem' }}>"{q}"</li>
                 ))}
@@ -196,9 +196,9 @@ export const App: React.FC = () => {
         )}
 
         <aside className="disclaimer-banner" role="note">
-          <AlertShieldIcon size={22} color="#9A5B08" />
+          <AlertShieldIcon size={22} color="var(--color-graphite)" />
           <div>
-            <strong>{t.disclaimerTitle}</strong> {t.disclaimerBody}
+            <strong style={{ color: 'var(--color-graphite)' }}>{t.disclaimerTitle}</strong> {t.disclaimerBody}
           </div>
         </aside>
       </main>
