@@ -64,11 +64,13 @@ export const App: React.FC = () => {
     localStorage.removeItem('lisan_user');
     setUser(null);
     setToken('');
+    setError(null);
   };
 
   const handleLoginSuccess = (loggedUser: User, loggedToken: string) => {
     setUser(loggedUser);
     setToken(loggedToken);
+    setError(null);
   };
 
   const handleProcessText = async (text: string, panelName: string, fileName?: string) => {

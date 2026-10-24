@@ -191,22 +191,25 @@ Report Text:
 ${text.slice(0, 4000)}`;
 
     const response = await axios.post(
-      `${config.addisAi.baseUrl}/chat/completions`,
+      `${config.addisAi.baseUrl}/api/v1/chat_generate`,
       {
+        prompt,
+        target_language: "en",
+        system: "Extract only facts present in the source report. Never invent analytes, values, units, reference intervals, or flags.",
         model: config.addisAi.textModel,
         messages: [{ role: "user", content: prompt }],
         temperature: 0.1,
       },
       {
         headers: {
-          Authorization: `Bearer ${config.addisAi.apiKey}`,
+          "x-api-key": config.addisAi.apiKey,
           "Content-Type": "application/json",
         },
         timeout: config.addisAi.timeoutMs,
       }
     );
 
-    const rawContent = response.data?.choices?.[0]?.message?.content;
+    const rawContent = response.data?.response_text || response.data?.choices?.[0]?.message?.content;
     if (rawContent) {
       let clean = rawContent.trim();
       if (clean.startsWith("```")) {

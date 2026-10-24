@@ -72,13 +72,32 @@ export class AddisAiService {
    */
   async localize(
     explanation: ClinicalExplanation,
-    targetLanguage: "am" | "om" | "ti"
+    targetLanguage: "en" | "am" | "om" | "ti"
   ): Promise<LocalizedExplanation> {
+    if (targetLanguage === "en") {
+      return {
+        language: "en",
+        test_category: explanation.test_category,
+        summary: explanation.summary,
+        detailed_explanation: explanation.summary,
+        overall_status: explanation.overall_status,
+        analytes: explanation.analytes,
+        suggested_questions_for_doctor: explanation.suggested_questions_for_doctor,
+        cultural_wellness_recommendations: [
+          "Discuss these results with a qualified healthcare professional.",
+          "Follow the care and follow-up guidance provided by your clinician.",
+        ],
+        disclaimer: explanation.disclaimer,
+      };
+    }
     if (this.apiKey) {
       try {
         const response = await axios.post(
-          `${this.baseUrl}/chat/completions`,
+          `${this.baseUrl}/api/v1/chat_generate`,
           {
+            prompt: JSON.stringify(explanation),
+            target_language: targetLanguage,
+            system: "Return only the requested JSON object. Preserve every numeric value, unit, analyte name, reference interval, and flag exactly. Do not diagnose, prescribe, or recommend medication, herbs, or traditional remedies.",
             model: config.addisAi.textModel || "addis-አሌፍ-፩",
             messages: [
               {
@@ -111,14 +130,14 @@ Respond ONLY with a JSON object in this format:
           },
           {
             headers: {
-              Authorization: `Bearer ${this.apiKey}`,
+              "x-api-key": this.apiKey,
               "Content-Type": "application/json",
             },
             timeout: config.addisAi.timeoutMs,
           }
         );
 
-        const content = response.data?.choices?.[0]?.message?.content;
+        const content = response.data?.response_text || response.data?.choices?.[0]?.message?.content;
         if (content) {
           let clean = content.trim();
           if (clean.startsWith("```")) {
@@ -253,37 +272,46 @@ Respond ONLY with a JSON object in this format:
   /**
    * Generates Ethiopian Speech via Addis AI TTS or synthetic audio generator.
    */
-  async synthesizeSpeech(text: string, language: "am" | "om" | "ti"): Promise<{ audioId: string; audioPath: string }> {
+  async synthesizeSpeech(text: string, language: "en" | "am" | "om" | "ti"): Promise<{ audioId: string; audioPath: string }> {
     const audioId = uuidv4();
     fs.mkdirSync(config.audioDir, { recursive: true });
-    const audioPath = path.join(config.audioDir, `${audioId}.wav`);
+    const audioPath = path.join(config.audioDir, `${audioId}.mp3`);
 
-    const voice = language === "am" ? config.addisAi.voiceAm : language === "om" ? config.addisAi.voiceOm : config.addisAi.voiceTi;
+    const voice = language === "en" ? config.addisAi.voiceEn : language === "am" ? config.addisAi.voiceAm : language === "om" ? config.addisAi.voiceOm : config.addisAi.voiceTi;
 
     if (this.apiKey && config.addisAi.ttsEnabled) {
       try {
         const response = await axios.post(
-          `${this.baseUrl}/audio/speech`,
+          `${this.baseUrl}/api/v1/voice/generations`,
           {
-            input: text,
-            voice,
-            model: "addis-tts-1",
-            response_format: "wav",
+            text,
+            voice_id: voice,
+            language,
+            output_format: "mp3_44100",
+            client_request_id: audioId,
           },
           {
             headers: {
-              Authorization: `Bearer ${this.apiKey}`,
+              "x-api-key": this.apiKey,
               "Content-Type": "application/json",
             },
-            responseType: "arraybuffer",
             timeout: config.addisAi.timeoutMs,
           }
         );
 
-        fs.writeFileSync(audioPath, Buffer.from(response.data));
+        const remoteAudioUrl = response.data?.data?.audio_url || response.data?.audio_url || response.data?.url;
+        if (remoteAudioUrl) {
+          const audioResponse = await axios.get(remoteAudioUrl, { responseType: "arraybuffer", timeout: config.addisAi.timeoutMs });
+          fs.writeFileSync(audioPath, Buffer.from(audioResponse.data));
+        } else if (response.data?.data?.audio_base64 || response.data?.audio_base64) {
+          fs.writeFileSync(audioPath, Buffer.from(response.data?.data?.audio_base64 || response.data.audio_base64, "base64"));
+        } else {
+          throw new Error("Addis AI returned no audio URL or audio payload.");
+        }
+        if (fs.statSync(audioPath).size < 100) throw new Error("Addis AI returned an empty audio file.");
         return { audioId, audioPath };
       } catch (err: any) {
-        console.warn(`[Addis AI TTS] Live TTS request failed (${err.message}); falling back to synthetic audio.`);
+        throw new Error(`Addis AI speech generation failed: ${err?.response?.status || err.message}`);
       }
     }
 

@@ -34,7 +34,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Search & Filter State
+  // Retained for compatibility with saved UI state; the history view intentionally shows every report.
   const [searchQuery, setSearchQuery] = useState('');
   const [filterMode, setFilterMode] = useState<'all' | 'flagged' | 'normal' | 'audio'>('all');
 
@@ -476,8 +476,8 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
           </div>
         )}
 
-        {/* Top KPI Stat Cards */}
-        <div
+        {/* Detailed KPI cards are intentionally replaced by one simple history count. */}
+        {false && <div className="history-summary"
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
@@ -649,10 +649,14 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
               <CalendarIcon size={20} color="#4B5563" />
             </div>
           </div>
-        </div>
+        </div>}
 
-        {/* Search, Filter Tabs & Actions */}
-        <div
+        <p className="history-count" aria-live="polite">
+          {reports.length} {reports.length === 1 ? 'saved report' : 'saved reports'}
+        </p>
+
+        {/* Search and filter controls are intentionally hidden: this view shows the complete history. */}
+        <div className="history-controls"
           style={{
             backgroundColor: '#FFFFFF',
             border: '1px solid #E5E7EB',

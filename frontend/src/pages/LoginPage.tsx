@@ -57,7 +57,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
   return (
     <div style={{
-      minHeight: '100vh',
+      minHeight: 'auto',
+      flex: '1 0 auto',
       backgroundColor: '#F8F9FA',
       color: '#1F2937',
       display: 'flex',

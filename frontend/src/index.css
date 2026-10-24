@@ -86,6 +86,9 @@ body {
 .site-footer__primary { display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 1.5rem; }
 .site-footer__copyright { color: var(--color-text); font-weight: 600; white-space: nowrap; }
 .site-footer__notice { max-width: 900px; }
+.history-controls { display: none !important; }
+.history-summary { display: none !important; }
+.history-count { margin: 0 0 1rem; color: var(--color-text-muted); font-size: .9rem; font-weight: 600; }
 @media (max-width: 720px) {
   .site-footer__primary { grid-template-columns: 1fr; gap: .35rem; }
   .site-footer__copyright { white-space: normal; }

@@ -35,14 +35,15 @@ export const config = {
 
   // Addis AI Provider
   addisAi: {
-    baseUrl: process.env.ADDIS_AI_BASE_URL || "https://api.addisassistant.com/v1",
+    baseUrl: (process.env.ADDIS_AI_BASE_URL || "https://api.addisassistant.com").replace(/\/+$/, "").replace(/\/v1$/, ""),
     apiKey: process.env.ADDIS_AI_API_KEY || "",
     textModel: process.env.ADDIS_AI_TEXT_MODEL || "addis-አሌፍ-፩",
     timeoutMs: parseInt(process.env.ADDIS_AI_TIMEOUT_SECONDS || "30", 10) * 1000,
     ttsEnabled: process.env.ADDIS_AI_TTS_ENABLED !== "false",
-    voiceAm: process.env.ADDIS_AI_TTS_DEFAULT_VOICE_AM || "hanna",
-    voiceOm: process.env.ADDIS_AI_TTS_DEFAULT_VOICE_OM || "chala",
-    voiceTi: process.env.ADDIS_AI_TTS_DEFAULT_VOICE_TI || "default",
+    voiceAm: process.env.ADDIS_AI_TTS_DEFAULT_VOICE_AM || "am-hamen",
+    voiceOm: process.env.ADDIS_AI_TTS_DEFAULT_VOICE_OM || "om-bikila",
+    voiceTi: process.env.ADDIS_AI_TTS_DEFAULT_VOICE_TI || "ti-berhane",
+    voiceEn: process.env.ADDIS_AI_TTS_DEFAULT_VOICE_EN || "default",
   },
 
   // Google Gemini AI Provider (Vision OCR & Clinical Reasoning)

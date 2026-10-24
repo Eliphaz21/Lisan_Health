@@ -96,15 +96,10 @@ describe('HistoryPage Component Tests', () => {
       expect(screen.getByText(/Lipid Profile/i)).toBeInTheDocument();
     });
 
-    // Check KPI cards
-    expect(screen.getByText(/Saved Reports/i)).toBeInTheDocument();
-    expect(screen.getByTestId('kpi-total-reports')).toHaveTextContent('2');
-    expect(screen.getByText(/Out-of-Range Flags/i)).toBeInTheDocument();
-    expect(screen.getByTestId('kpi-flags')).toHaveTextContent('2');
-    expect(screen.getByText(/Localized Audio/i)).toBeInTheDocument();
+    expect(screen.getByText('2 saved reports')).toBeInTheDocument();
   });
 
-  it('filters reports using search box', async () => {
+  it('shows the complete report history without filters', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
       Promise.resolve({
         ok: true,
@@ -122,11 +117,8 @@ describe('HistoryPage Component Tests', () => {
       expect(screen.getByText(/Complete Blood Count \(CBC\)/i)).toBeInTheDocument();
     });
 
-    const searchInput = screen.getByPlaceholderText(/Search by panel, file, analyte or notes/i);
-    fireEvent.change(searchInput, { target: { value: 'Lipid' } });
-
     expect(screen.getByText(/Lipid Profile/i)).toBeInTheDocument();
-    expect(screen.queryByText(/Complete Blood Count \(CBC\)/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/Complete Blood Count \(CBC\)/i)).toBeInTheDocument();
   });
 
   it('opens deep dive inspection modal and displays detailed observations and Amharic translation', async () => {

@@ -15,6 +15,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ language, explanationT
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [duration, setDuration] = useState<number>(0);
+  const [speechError, setSpeechError] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const t = translations[language];
 
@@ -109,6 +110,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ language, explanationT
     setAudioUrl(null);
     setCurrentTime(0);
     setDuration(0);
+    setSpeechError(null);
   }, [language, explanationText]);
 
   const loadAudio = useCallback(async (): Promise<string | null> => {
@@ -133,10 +135,8 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ language, explanationT
       const url = data.audio_url || null;
       setAudioUrl(url);
       return url;
-    } catch {
-      // Fallback for tests or disconnected environment: use simulated audio
-      setAudioUrl('simulated');
-      return 'simulated';
+    } catch (error: any) {
+      throw new Error(error?.message || 'Speech generation failed.');
     } finally {
       setIsLoading(false);
     }
@@ -161,15 +161,15 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ language, explanationT
     // Trigger audible spoken voice
     speakText(textToSpeak, speed);
 
-    const url = await loadAudio();
-    if (!url) return;
-
-    if (url === 'simulated') {
-      // Offline fallback: toggle simulated playback state with voice
-      setIsPlaying(true);
-      setDuration(6.0);
+    let url: string | null;
+    try {
+      url = await loadAudio();
+    } catch (error: any) {
+      setSpeechError(error?.message || 'Speech generation failed. Please try again later.');
+      setIsPlaying(false);
       return;
     }
+    if (!url) return;
 
     if (!audioRef.current) {
       const audio = new Audio(url);
@@ -287,6 +287,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ language, explanationT
           >
             {isLoading ? '...' : isPlaying ? t.audioSubtitlePlaying : t.audioSubtitleReady}
           </div>
+          {speechError && <div role="alert" style={{ color: '#FCA5A5', fontSize: '0.75rem', marginTop: '0.25rem' }}>{speechError}</div>}
         </div>
       </div>
 

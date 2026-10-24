@@ -12,7 +12,7 @@ export const speechController = {
       return;
     }
 
-    const lang = ["am", "om", "ti"].includes(language) ? language : "am";
+    const lang = ["en", "am", "om", "ti"].includes(language) ? language : "am";
     try {
       const { audioId } = await addisAiService.synthesizeSpeech(text, lang);
       res.json({
@@ -27,14 +27,14 @@ export const speechController = {
 
   async streamAudio(req: Request, res: Response): Promise<void> {
     const sanitizedId = String(req.params.audioId).replace(/[^a-zA-Z0-9_-]/g, "");
-    const audioPath = path.join(config.audioDir, `${sanitizedId}.wav`);
+    const audioPath = path.join(config.audioDir, `${sanitizedId}.mp3`);
 
     if (!fs.existsSync(audioPath)) {
       res.status(404).json({ detail: "Audio file not found or expired." });
       return;
     }
 
-    res.setHeader("Content-Type", "audio/wav");
+    res.setHeader("Content-Type", "audio/mpeg");
     const stream = fs.createReadStream(audioPath);
     stream.pipe(res);
   },

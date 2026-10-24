@@ -219,3 +219,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
     audioTitle: 'ትግርኛ ድምጺ መብርሂ', audioSubtitleReady: 'Addis AI ድምጺ • ንምጽዋት ድሉው', audioSubtitlePlaying: 'Addis AI ድምጺ • ይጻወት ኣሎ', audioSpeed: 'ፍጥነት', audioPlay: 'ድምጺ ኣጻውት', audioPause: 'ደው ኣብል', reviewRequiredNotice: 'ምርግጋጽ ሓኪም የድሊ', clearResults: 'ውጽኢት ኣጽርይ', selectedFile: 'ዝተመርጸ ሰነድ', analyzing: 'ብDual-AI ይተንተን ኣሎ...', changeFile: 'ካልእ ፋይል ምረጽ', detailedExplanationTitle: 'ዝርዝር መብርሂ', culturalWellnessTitle: 'ሓፈሻዊ ሓበሬታ ጥዕና',
   },
 };
+
+// Keep the Tigrinya safety notice semantically equivalent to the English source notice.
+translations.ti.disclaimerTitle = 'ናይ ትምህርቲ ሕክምናዊ መብርሂ ማሳሰቢያ፡';
+translations.ti.disclaimerBody = 'LisanHealth ንህዝቢ ጥዕና ንምምሕያሽን ምርድዳእ ተሓካሚን ንምዕባይን ዝተዳለወ ናይ ትምህርቲ መሳርሒ እዩ። ናይ ሕክምና መርመራ፣ መምርሒ ሕክምና ወይ መድሃኒት ኣይህብን። ንክሊኒካዊ መምርሒ ኩሉ ግዜ ምስ ብቑዕ በዓል ሞያ ጥዕና ተማኸር።';
