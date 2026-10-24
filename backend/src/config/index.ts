@@ -5,7 +5,7 @@ import path from "path";
 dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 function resolveDatabaseUrl(rawUrl?: string): string {
-  if (!rawUrl) return "postgresql://admin_lisan_health:postgres@196.190.212.135:54382/lisan_health?sslmode=prefer";
+  if (!rawUrl) return "";
   let url = rawUrl.trim();
   // Automatically route internal AletCloud cluster host to external public IP when running outside K8s
   if (url.includes("lisan-health-rw.db-947.svc.cluster.local") && !process.env.KUBERNETES_SERVICE_HOST) {
@@ -21,9 +21,13 @@ export const config = {
   frontendUrl: process.env.FRONTEND_URL || "http://localhost:5173",
 
   // Security
-  jwtSecret: process.env.SECRET_KEY || "d3eccfbc4acb10b77bb53cee4ef6c57f6363f8969ebbd8dbe1749901ed40bfec",
-  jwtExpiresIn: process.env.ACCESS_TOKEN_EXPIRE_MINUTES ? `${process.env.ACCESS_TOKEN_EXPIRE_MINUTES}m` : "7d",
-  adminEmail: (process.env.ADMIN_EMAIL || "admin@example.com").toLowerCase().trim(),
+  jwtSecret: process.env.SECRET_KEY || "",
+  jwtExpiresIn: process.env.ACCESS_TOKEN_EXPIRE_MINUTES ? `${process.env.ACCESS_TOKEN_EXPIRE_MINUTES}m` : "15m",
+  adminEmail: (process.env.ADMIN_EMAIL || "").toLowerCase().trim(),
+  trustProxy: process.env.TRUST_PROXY === "true",
+  maxJsonBytes: process.env.MAX_JSON_BYTES || "1mb",
+  uploadMaxBytes: Number(process.env.MAX_UPLOAD_SIZE_BYTES || 10 * 1024 * 1024),
+  authRateLimitMax: Number(process.env.AUTH_RATE_LIMIT_MAX || 10),
 
   // Database
   databaseUrl: resolveDatabaseUrl(process.env.DATABASE_URL),
@@ -50,3 +54,13 @@ export const config = {
   uploadDir: path.resolve(__dirname, "../../../storage/uploads"),
   audioDir: path.resolve(__dirname, "../../../storage/audio"),
 };
+
+export function validateProductionConfig(): void {
+  if (config.env === "production") {
+    const missing: string[] = [];
+    if (config.jwtSecret.length < 32) missing.push("SECRET_KEY (minimum 32 characters)");
+    if (!config.databaseUrl) missing.push("DATABASE_URL");
+    if (!config.adminEmail) missing.push("ADMIN_EMAIL");
+    if (missing.length > 0) throw new Error(`Production configuration is incomplete: ${missing.join(", ")}`);
+  }
+}

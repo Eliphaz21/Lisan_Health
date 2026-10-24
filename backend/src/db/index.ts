@@ -10,8 +10,8 @@ export const pool = new Pool({
   connectionTimeoutMillis: 5000,
   idleTimeoutMillis: 30000,
   max: 10,
-  ssl: config.databaseUrl.includes("196.190.212.135") || config.databaseUrl.includes("sslmode")
-    ? { rejectUnauthorized: false }
+  ssl: config.databaseUrl.includes("sslmode=require") || config.databaseUrl.includes("sslmode=verify")
+    ? { rejectUnauthorized: true }
     : false,
 });
 
@@ -90,6 +90,9 @@ export async function initDb(): Promise<void> {
       `[Database] Warning: Remote PostgreSQL connection failed (${err.message}). Using resilient persistent local fallback.`
     );
     isConnectedToPostgres = false;
+    if (config.env === "production") {
+      throw new Error("PostgreSQL is required in production and could not be reached.");
+    }
   }
 }
 
@@ -279,7 +282,7 @@ export const db = {
       totalUsers,
       totalReports,
       activeAdmin: config.adminEmail,
-      dbStatus: isConnectedToPostgres ? "AletCloud PostgreSQL 17 (Connected)" : "Resilient Storage Engaged",
+      dbStatus: isConnectedToPostgres ? "PostgreSQL connected" : "Development memory storage",
     };
   },
 

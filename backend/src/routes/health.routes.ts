@@ -16,8 +16,8 @@ router.get(["/health", "/api/v1/health"], (req, res) => {
   res.json({
     status: "healthy",
     version: "1.0.0",
-    environment: "production",
-    database: db.isPostgres() ? "connected" : "fallback",
+    environment: process.env.NODE_ENV || process.env.ENVIRONMENT || "development",
+    database: db.isPostgres() ? "connected" : "unavailable",
     timestamp: new Date().toISOString(),
   });
 });
@@ -25,7 +25,7 @@ router.get(["/health", "/api/v1/health"], (req, res) => {
 router.get(["/health/ready", "/api/v1/health/ready"], (req, res) => {
   res.json({
     status: "ready",
-    database: db.isPostgres() ? "postgresql" : "local_storage",
+    database: db.isPostgres() ? "postgresql" : "unavailable",
     timestamp: new Date().toISOString(),
   });
 });

@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: ghcr.io/eliphaz21/lisan-frontend:latest
+          image: ghcr.io/eliphaz21/lisan-frontend:REPLACE_WITH_IMMUTABLE_TAG
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80

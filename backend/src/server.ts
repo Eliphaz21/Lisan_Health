@@ -1,8 +1,9 @@
 import { app } from "./app";
-import { config } from "./config";
+import { config, validateProductionConfig } from "./config";
 import { initDb } from "./db";
 
 async function bootstrap() {
+  validateProductionConfig();
   console.log(`[LisanHealth Backend] Starting enterprise Express service in ${config.env} mode...`);
 
   // Connect & initialize database
@@ -11,18 +12,9 @@ async function bootstrap() {
   // Hydrate dynamic AI configurations from database if stored
   try {
     const { db } = await import("./db");
-    const dbKey = await db.getSystemConfig("ADDIS_AI_KEY");
-    if (dbKey && dbKey.trim()) {
-      config.addisAi.apiKey = dbKey.trim();
-    }
     const dbUrl = await db.getSystemConfig("ADDIS_AI_BASE_URL");
     if (dbUrl && dbUrl.trim()) {
       config.addisAi.baseUrl = dbUrl.trim();
-    }
-    const dbGeminiKey = await db.getSystemConfig("GEMINI_AI_KEY");
-    if (dbGeminiKey && dbGeminiKey.trim()) {
-      config.geminiAi.apiKey = dbGeminiKey.trim();
-      process.env.GEMINI_API_KEY = dbGeminiKey.trim();
     }
     const dbGeminiModel = await db.getSystemConfig("GEMINI_MODEL");
     if (dbGeminiModel && dbGeminiModel.trim()) {

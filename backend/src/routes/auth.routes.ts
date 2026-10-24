@@ -6,7 +6,7 @@ import { requireAuth } from "../middleware/auth.middleware";
 // Brute-force and credential-stuffing defense
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes window
-  max: 30, // Limit each IP to 30 requests per window
+  max: 10,
   standardHeaders: true,
   legacyHeaders: false,
   message: { detail: "Too many authentication requests from this IP. Please try again after 15 minutes." },

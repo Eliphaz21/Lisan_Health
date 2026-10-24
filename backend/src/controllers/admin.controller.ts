@@ -218,11 +218,15 @@ export const adminController = {
       voice_oromo,
     } = parse.data;
 
+    if (addis_ai_key || gemini_ai_key) {
+      res.status(400).json({ detail: "AI secrets must be configured through the deployment secret manager, not the application database." });
+      return;
+    }
+
     if (active_provider) {
       await db.setSystemConfig("ACTIVE_AI_PROVIDER", active_provider);
     }
     if (addis_ai_key && addis_ai_key.trim()) {
-      await db.setSystemConfig("ADDIS_AI_KEY", addis_ai_key.trim());
       config.addisAi.apiKey = addis_ai_key.trim();
     }
     if (addis_ai_base_url && addis_ai_base_url.trim()) {
@@ -230,8 +234,6 @@ export const adminController = {
       config.addisAi.baseUrl = addis_ai_base_url.trim();
     }
     if (gemini_ai_key && gemini_ai_key.trim()) {
-      await db.setSystemConfig("GEMINI_AI_KEY", gemini_ai_key.trim());
-      process.env.GEMINI_API_KEY = gemini_ai_key.trim();
       config.geminiAi.apiKey = gemini_ai_key.trim();
     }
     if (gemini_model) {

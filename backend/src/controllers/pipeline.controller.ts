@@ -4,6 +4,25 @@ import { extractReportFromText, extractReportFromFileBuffer } from "../services/
 import { explainReportInEnglish } from "../services/clinicalReasoning.service";
 import { addisAiService } from "../services/addisAi.service";
 import { ExtractedReport } from "../types";
+import { verifyReasoningPreservation } from "../services/validator.service";
+
+function validateUploadedFile(file: Express.Multer.File): void {
+  const name = file.originalname.toLowerCase();
+  const extension = name.slice(name.lastIndexOf("."));
+  if (![".pdf", ".png", ".jpg", ".jpeg", ".txt"].includes(extension)) {
+    throw Object.assign(new Error("Unsupported report file type."), { status: 415 });
+  }
+  if (file.size > config.uploadMaxBytes) {
+    throw Object.assign(new Error("Report file exceeds the maximum allowed size."), { status: 413 });
+  }
+  const header = file.buffer.subarray(0, 12);
+  const isPdf = header.subarray(0, 5).toString("ascii") === "%PDF-";
+  const isPng = header.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+  const isJpeg = header.subarray(0, 3).equals(Buffer.from([0xff, 0xd8, 0xff]));
+  const isText = extension === ".txt" && !header.includes(0);
+  const valid = (extension === ".pdf" && isPdf) || (extension === ".png" && isPng) || ([".jpg", ".jpeg"].includes(extension) && isJpeg) || (extension === ".txt" && isText);
+  if (!valid) throw Object.assign(new Error("Uploaded file content does not match its declared type."), { status: 415 });
+}
 
 export const pipelineController = {
   async processPipeline(req: Request, res: Response): Promise<void> {
@@ -24,6 +43,7 @@ export const pipelineController = {
 
       // Stage A: Provider A Clinical Reasoning (English)
       const englishExplanation = explainReportInEnglish(extracted);
+      verifyReasoningPreservation(extracted, englishExplanation);
 
       // Stage B: Provider B Addis AI Localization (Amharic or Afaan Oromoo)
       const localizedExplanation = await addisAiService.localize(englishExplanation, lang);
@@ -56,6 +76,7 @@ export const pipelineController = {
         res.status(400).json({ detail: "Please provide a medical report file (PDF, PNG, JPG, or TXT)." });
         return;
       }
+      validateUploadedFile(file);
 
       const lang = req.body.target_language === "om" ? "om" : "am";
       const extracted = await extractReportFromFileBuffer(file.buffer, file.originalname, file.mimetype);
@@ -79,6 +100,7 @@ export const pipelineController = {
 
       // Stage A: Provider A Clinical Reasoning (English)
       const englishExplanation = explainReportInEnglish(extracted);
+      verifyReasoningPreservation(extracted, englishExplanation);
 
       // Stage B: Provider B Addis AI Localization (Amharic or Afaan Oromoo)
       const localizedExplanation = await addisAiService.localize(englishExplanation, lang);

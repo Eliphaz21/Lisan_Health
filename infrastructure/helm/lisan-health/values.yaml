@@ -9,7 +9,7 @@ backend:
   image:
     repository: ghcr.io/eliphaz21/lisan-backend
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "sha-REPLACE_ME"
   service:
     type: ClusterIP
     port: 8000
@@ -30,16 +30,20 @@ backend:
     LOG_LEVEL: "INFO"
     APP_HOST: "0.0.0.0"
     APP_PORT: "8000"
-    REASONING_PROVIDER: "mock"
     ADDIS_AI_TTS_ENABLED: "true"
-    PROMETHEUS_METRICS_ENABLED: "true"
+  secrets:
+    secretKey: ""
+    databaseUrl: ""
+    adminEmail: ""
+    addisAiApiKey: ""
+    geminiApiKey: ""
 
 frontend:
   replicaCount: 2
   image:
     repository: ghcr.io/eliphaz21/lisan-frontend
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "sha-REPLACE_ME"
   service:
     type: ClusterIP
     port: 80

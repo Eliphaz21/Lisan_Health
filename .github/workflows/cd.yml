@@ -94,7 +94,7 @@ jobs:
           file: backend/Dockerfile
           push: false # Set true in production when token configured
           tags: |
-            ghcr.io/${{ github.repository_owner }}/lisan-backend:latest
+            ghcr.io/${{ github.repository_owner }}/lisan-backend:${{ github.sha }}
             ghcr.io/${{ github.repository_owner }}/lisan-backend:${{ github.sha }}
 
       - name: Build & Push Frontend Container
@@ -104,5 +104,5 @@ jobs:
           file: frontend/Dockerfile
           push: false # Set true in production when token configured
           tags: |
-            ghcr.io/${{ github.repository_owner }}/lisan-frontend:latest
+            ghcr.io/${{ github.repository_owner }}/lisan-frontend:${{ github.sha }}
             ghcr.io/${{ github.repository_owner }}/lisan-frontend:${{ github.sha }}

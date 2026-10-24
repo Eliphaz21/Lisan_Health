@@ -24,7 +24,7 @@ spec:
         fsGroup: 10001
       containers:
         - name: backend
-          image: ghcr.io/eliphaz21/lisan-backend:latest
+          image: ghcr.io/eliphaz21/lisan-backend:REPLACE_WITH_IMMUTABLE_TAG
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
@@ -32,6 +32,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: lisan-config
+            - secretRef:
+                name: lisan-secrets
           resources:
             requests:
               cpu: "100m"
@@ -39,6 +41,16 @@ spec:
             limits:
               cpu: "500m"
               memory: "512Mi"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: storage
+              mountPath: /app/storage
           livenessProbe:
             httpGet:
               path: /api/v1/health
@@ -55,3 +67,8 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 3
             failureThreshold: 2
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: storage
+          emptyDir: {}

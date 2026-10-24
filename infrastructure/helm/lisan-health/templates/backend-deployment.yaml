@@ -35,6 +35,19 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "lisan-health.fullname" . }}-config
+            - secretRef:
+                name: {{ include "lisan-health.fullname" . }}-secrets
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: storage
+              mountPath: /app/storage
           resources:
             {{- toYaml .Values.backend.resources | nindent 12 }}
           livenessProbe:
@@ -53,3 +66,8 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 3
             failureThreshold: 2
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: storage
+          emptyDir: {}

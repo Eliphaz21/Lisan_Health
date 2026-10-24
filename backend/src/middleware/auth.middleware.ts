@@ -17,7 +17,7 @@ export async function requireAuth(req: AuthenticatedRequest, res: Response, next
 
   const token = authHeader.substring(7).trim();
   try {
-    const payload = jwt.verify(token, config.jwtSecret) as { sub: string; role: string };
+    const payload = jwt.verify(token, config.jwtSecret, { algorithms: ["HS256"] }) as { sub: string; role: string; jti?: string };
     const user = await db.findUserById(payload.sub);
 
     if (!user || !user.is_active) {

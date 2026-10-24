@@ -9,6 +9,12 @@ backend:
     minReplicas: 3
     maxReplicas: 12
     targetCPUUtilizationPercentage: 70
+  secrets:
+    secretKey: ""
+    databaseUrl: ""
+    adminEmail: ""
+    addisAiApiKey: ""
+    geminiApiKey: ""
 
 frontend:
   replicaCount: 3

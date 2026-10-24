@@ -1,6 +1,6 @@
 services:
   # ----------------------------------------------------------------------------
-  # Backend Microservice (FastAPI + Pydantic + Pytest)
+  # Backend Microservice (TypeScript + Express + PostgreSQL)
   # ----------------------------------------------------------------------------
   backend:
     build:
@@ -15,16 +15,20 @@ services:
       - APP_HOST=0.0.0.0
       - APP_PORT=8000
       - FRONTEND_URL=http://localhost:3000
-      - UPLOAD_DIR=/app/storage/uploads
-      - AUDIO_OUTPUT_DIR=/app/storage/audio
-      - REASONING_PROVIDER=mock
+      - DATABASE_URL=postgresql://lisan:lisan_dev_password@postgres:5432/lisan_health
+      - SECRET_KEY=development_only_replace_with_a_32_character_secret
+      - ADMIN_EMAIL=admin@example.com
+      - MAX_UPLOAD_SIZE_BYTES=10485760
       - ADDIS_AI_BASE_URL=https://api.addisassistant.com/v1
     volumes:
       - lisan-storage:/app/storage
     networks:
       - lisan-net
+    depends_on:
+      postgres:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:8000/api/v1/health"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -54,13 +58,29 @@ services:
       start_period: 5s
     restart: unless-stopped
 
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: lisan_health
+      POSTGRES_USER: lisan
+      POSTGRES_PASSWORD: lisan_dev_password
+    volumes:
+      - lisan-postgres:/var/lib/postgresql/data
+    networks:
+      - lisan-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lisan -d lisan_health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 # ------------------------------------------------------------------------------
 # Persistent Volumes & Private Network
 # ------------------------------------------------------------------------------
 volumes:
   lisan-storage:
     driver: local
-
+  lisan-postgres:
+    driver: local
 networks:
   lisan-net:
     driver: bridge
