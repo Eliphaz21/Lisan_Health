@@ -44,7 +44,7 @@ export interface ExtractedLabReport {
   warnings: string[];
 }
 
-export type SupportedLanguage = 'en' | 'am' | 'om';
+export type SupportedLanguage = 'en' | 'am' | 'om' | 'ti';
 
 export interface HealthStatus {
   status: string;

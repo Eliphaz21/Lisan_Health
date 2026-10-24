@@ -10,6 +10,7 @@ const languages: { code: SupportedLanguage; label: string; native: string }[] = 
   { code: 'en', label: 'English', native: 'English' },
   { code: 'am', label: 'Amharic', native: 'አማርኛ' },
   { code: 'om', label: 'Afaan Oromoo', native: 'Oromoo' },
+  { code: 'ti', label: 'Tigrinya', native: 'ትግርኛ' },
 ];
 
 export const LanguageSelector: React.FC<LanguageSelectorProps> = ({

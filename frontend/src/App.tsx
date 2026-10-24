@@ -10,6 +10,8 @@ import { AdminPage } from './pages/AdminPage';
 import { HistoryPage } from './pages/HistoryPage';
 import type { ExtractedLabReport, HealthStatus, SupportedLanguage, LabObservation } from './types/report';
 import type { User } from './types/auth';
+import { Footer } from './components/Footer';
+import { PolicyPage } from './pages/PolicyPage';
 
 export const App: React.FC = () => {
   const [currentLanguage, setCurrentLanguage] = useState<SupportedLanguage>('am');
@@ -84,7 +86,7 @@ export const App: React.FC = () => {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           text,
-          target_language: currentLanguage === 'om' ? 'om' : 'am',
+          target_language: currentLanguage,
         }),
       });
 
@@ -160,7 +162,7 @@ export const App: React.FC = () => {
       // 1. Try multipart file upload to backend pipeline (supports PDF, PNG, JPG, TXT)
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('target_language', currentLanguage === 'om' ? 'om' : 'am');
+      formData.append('target_language', currentLanguage);
 
       const response = await fetch('/api/v1/pipeline/upload', {
         method: 'POST',
@@ -345,6 +347,10 @@ export const App: React.FC = () => {
             element={<AdminPage currentUser={user} token={token} />}
           />
 
+          <Route path="/privacy" element={<PolicyPage kind="privacy" />} />
+          <Route path="/terms" element={<PolicyPage kind="terms" />} />
+          <Route path="/medical-safety" element={<PolicyPage kind="medical" />} />
+          <Route path="/data-deletion" element={<PolicyPage kind="deletion" />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
 
@@ -361,6 +367,7 @@ export const App: React.FC = () => {
           token={token}
           onSelectReport={handleLoadReport}
         />
+        <Footer />
       </div>
     </BrowserRouter>
   );

@@ -59,7 +59,7 @@ export interface ClinicalExplanation {
 }
 
 export interface LocalizedExplanation {
-  language: "en" | "am" | "om";
+  language: "en" | "am" | "om" | "ti";
   test_category: string;
   summary: string;
   overall_status: string;

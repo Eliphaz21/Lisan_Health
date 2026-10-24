@@ -28,7 +28,7 @@ export const pipelineController = {
   async processPipeline(req: Request, res: Response): Promise<void> {
     try {
       const { text, target_language = "am", structured_report } = req.body;
-      const lang = target_language === "om" ? "om" : "am";
+      const lang = ["en", "am", "om", "ti"].includes(target_language) ? target_language : "am";
 
       let extracted: ExtractedReport;
 
@@ -64,8 +64,8 @@ export const pipelineController = {
         language: lang,
       });
     } catch (err: any) {
-      console.error("[Pipeline Error]", err);
-      res.status(500).json({ detail: err.message || "An error occurred during medical report processing." });
+      console.error("[Pipeline Error]", err?.message);
+      res.status(err?.status || 500).json({ detail: err?.status ? err.message : "Report processing failed." });
     }
   },
 
@@ -78,7 +78,7 @@ export const pipelineController = {
       }
       validateUploadedFile(file);
 
-      const lang = req.body.target_language === "om" ? "om" : "am";
+      const lang = ["en", "am", "om", "ti"].includes(req.body.target_language) ? req.body.target_language : "am";
       const extracted = await extractReportFromFileBuffer(file.buffer, file.originalname, file.mimetype);
 
       if (extracted.analytes.length === 0) {
@@ -122,8 +122,8 @@ export const pipelineController = {
         file_name: file.originalname,
       });
     } catch (err: any) {
-      console.error("[Upload Error]", err);
-      res.status(500).json({ detail: err.message || "Failed to process uploaded medical report." });
+      console.error("[Upload Error]", err?.message);
+      res.status(err?.status || 500).json({ detail: err?.status ? err.message : "Uploaded report processing failed." });
     }
   },
 };

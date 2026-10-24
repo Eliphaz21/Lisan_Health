@@ -12,7 +12,7 @@ export const speechController = {
       return;
     }
 
-    const lang = language === "om" ? "om" : "am";
+    const lang = ["am", "om", "ti"].includes(language) ? language : "am";
     try {
       const { audioId } = await addisAiService.synthesizeSpeech(text, lang);
       res.json({

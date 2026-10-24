@@ -72,7 +72,7 @@ export class AddisAiService {
    */
   async localize(
     explanation: ClinicalExplanation,
-    targetLanguage: "am" | "om"
+    targetLanguage: "am" | "om" | "ti"
   ): Promise<LocalizedExplanation> {
     if (this.apiKey) {
       try {
@@ -84,7 +84,7 @@ export class AddisAiService {
               {
                 role: "system",
                 content: `You are an expert Ethiopian medical localization assistant for LisanHealth.
-Translate clinical report explanations into ${targetLanguage === "am" ? "Amharic" : "Afaan Oromoo"}.
+Translate clinical report explanations into ${targetLanguage === "am" ? "Amharic" : targetLanguage === "om" ? "Afaan Oromoo" : "Tigrinya"}.
 Provide:
 1. "summary": Clear plain-language patient summary.
 2. "detailed_explanation": Comprehensive paragraph explaining what these specific laboratory findings signify in daily health.
@@ -201,7 +201,7 @@ Respond ONLY with a JSON object in this format:
 
   private fallbackLocalize(
     explanation: ClinicalExplanation,
-    lang: "am" | "om"
+    lang: "am" | "om" | "ti"
   ): LocalizedExplanation {
     const isAmharic = lang === "am";
     const dict = isAmharic ? AMHARIC_DICT : OROMO_DICT;
@@ -253,12 +253,12 @@ Respond ONLY with a JSON object in this format:
   /**
    * Generates Ethiopian Speech via Addis AI TTS or synthetic audio generator.
    */
-  async synthesizeSpeech(text: string, language: "am" | "om"): Promise<{ audioId: string; audioPath: string }> {
+  async synthesizeSpeech(text: string, language: "am" | "om" | "ti"): Promise<{ audioId: string; audioPath: string }> {
     const audioId = uuidv4();
     fs.mkdirSync(config.audioDir, { recursive: true });
     const audioPath = path.join(config.audioDir, `${audioId}.wav`);
 
-    const voice = language === "am" ? config.addisAi.voiceAm : config.addisAi.voiceOm;
+    const voice = language === "am" ? config.addisAi.voiceAm : language === "om" ? config.addisAi.voiceOm : config.addisAi.voiceTi;
 
     if (this.apiKey && config.addisAi.ttsEnabled) {
       try {

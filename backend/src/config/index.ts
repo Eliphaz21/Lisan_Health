@@ -42,6 +42,7 @@ export const config = {
     ttsEnabled: process.env.ADDIS_AI_TTS_ENABLED !== "false",
     voiceAm: process.env.ADDIS_AI_TTS_DEFAULT_VOICE_AM || "hanna",
     voiceOm: process.env.ADDIS_AI_TTS_DEFAULT_VOICE_OM || "chala",
+    voiceTi: process.env.ADDIS_AI_TTS_DEFAULT_VOICE_TI || "default",
   },
 
   // Google Gemini AI Provider (Vision OCR & Clinical Reasoning)

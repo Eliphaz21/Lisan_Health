@@ -1,0 +1,30 @@
+name: AletCloud Synthetic Smoke Test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    environment: aletcloud-test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require dedicated test endpoint
+        env:
+          ALET_ENDPOINT: ${{ secrets.ALETCLOUD_TEST_ENDPOINT }}
+          DATABASE_URL: ${{ secrets.ALETCLOUD_TEST_DATABASE_URL }}
+        run: |
+          test -n "$ALET_ENDPOINT"
+          test -n "$DATABASE_URL"
+          case "$DATABASE_URL" in *prod*|*production*) echo 'Production database URLs are forbidden'; exit 1;; esac
+      - name: Verify AletCloud health and readiness
+        env:
+          ALET_ENDPOINT: ${{ secrets.ALETCLOUD_TEST_ENDPOINT }}
+        run: |
+          curl --fail --silent --show-error "$ALET_ENDPOINT/api/v1/health"
+          curl --fail --silent --show-error "$ALET_ENDPOINT/api/v1/health/ready"
+      - name: Explain test boundary
+        run: echo 'Only synthetic, dedicated AletCloud smoke checks run here; no production database mutation is permitted.'

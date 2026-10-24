@@ -15,6 +15,11 @@ function readRefreshToken(req: Request): string | undefined {
   return cookie ? decodeURIComponent(cookie.slice("lisan_refresh=".length)) : undefined;
 }
 
+function readCookie(req: Request, name: string): string | undefined {
+  const cookie = req.headers.cookie?.split(";").map((part) => part.trim()).find((part) => part.startsWith(`${name}=`));
+  return cookie ? decodeURIComponent(cookie.slice(name.length + 1)) : undefined;
+}
+
 async function issueTokens(user: { id: string; role: string }): Promise<{ accessToken: string; refreshToken: string }> {
   const accessToken = jwt.sign({ sub: user.id, role: user.role }, config.jwtSecret, { expiresIn: config.jwtExpiresIn as any, algorithm: "HS256" });
   const refreshToken = crypto.randomBytes(48).toString("base64url");
@@ -23,7 +28,12 @@ async function issueTokens(user: { id: string; role: string }): Promise<{ access
 }
 
 function setRefreshCookie(res: Response, token: string): void {
-  res.setHeader("Set-Cookie", `lisan_refresh=${encodeURIComponent(token)}; HttpOnly; SameSite=Strict; Path=/api/v1/auth; Max-Age=604800${config.env === "production" ? "; Secure" : ""}`);
+  const csrf = crypto.randomBytes(24).toString("base64url");
+  const secure = config.env === "production" ? "; Secure" : "";
+  res.setHeader("Set-Cookie", [
+    `lisan_refresh=${encodeURIComponent(token)}; HttpOnly; SameSite=Strict; Path=/api/v1/auth; Max-Age=604800${secure}`,
+    `lisan_csrf=${encodeURIComponent(csrf)}; SameSite=Strict; Path=/api/v1/auth; Max-Age=604800${secure}`,
+  ]);
 }
 
 export const authController = {
@@ -132,6 +142,9 @@ export const authController = {
   async refresh(req: Request, res: Response): Promise<void> {
     const token = readRefreshToken(req) || (typeof req.body?.refresh_token === "string" ? req.body.refresh_token : undefined);
     if (!token) { res.status(401).json({ detail: "Refresh token required." }); return; }
+    const csrfCookie = readCookie(req, "lisan_csrf");
+    const csrfHeader = req.header("x-csrf-token");
+    if (!csrfCookie || !csrfHeader || csrfCookie !== csrfHeader) { res.status(403).json({ detail: "CSRF validation failed." }); return; }
     const userId = await db.rotateRefreshToken(token);
     if (!userId) { res.status(401).json({ detail: "Invalid, expired, or already-used refresh token." }); return; }
     const user = await db.findUserById(userId);
@@ -144,7 +157,7 @@ export const authController = {
   async logout(req: Request, res: Response): Promise<void> {
     const token = readRefreshToken(req) || (typeof req.body?.refresh_token === "string" ? req.body.refresh_token : undefined);
     if (token) await db.revokeRefreshToken(token);
-    res.setHeader("Set-Cookie", "lisan_refresh=; HttpOnly; SameSite=Strict; Path=/api/v1/auth; Max-Age=0");
+    res.setHeader("Set-Cookie", ["lisan_refresh=; HttpOnly; SameSite=Strict; Path=/api/v1/auth; Max-Age=0", "lisan_csrf=; SameSite=Strict; Path=/api/v1/auth; Max-Age=0"]);
     res.status(204).send();
   },
 

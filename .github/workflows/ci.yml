@@ -30,6 +30,9 @@ jobs:
       - name: Install Dependencies
         working-directory: backend
         run: npm ci
+      - name: Dependency vulnerability policy
+        working-directory: backend
+        run: npm audit --audit-level=high
 
       - name: Run Backend Test Suite & Medical Invariants
         working-directory: backend
@@ -59,6 +62,9 @@ jobs:
       - name: Install Frontend Dependencies
         working-directory: frontend
         run: npm ci
+      - name: Frontend dependency vulnerability policy
+        working-directory: frontend
+        run: npm audit --audit-level=high
 
       - name: Run Vitest Unit & Component Tests
         working-directory: frontend
@@ -84,3 +90,15 @@ jobs:
 
       - name: Build Frontend Container
         run: docker build -t lisan-frontend:ci -f frontend/Dockerfile ./frontend
+
+  secret-scan:
+    name: Secret and source safety scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Scan repository for secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
