@@ -59,12 +59,11 @@ const OROMO_DICT: Record<string, { name: string; plain: string; what: string }> 
 };
 
 export class AddisAiService {
-  private apiKey: string;
-  private baseUrl: string;
-
-  constructor() {
-    this.apiKey = config.addisAi.apiKey;
-    this.baseUrl = config.addisAi.baseUrl;
+  get apiKey(): string {
+    return config.addisAi.apiKey;
+  }
+  get baseUrl(): string {
+    return config.addisAi.baseUrl;
   }
 
   /**
@@ -80,13 +79,19 @@ export class AddisAiService {
         const response = await axios.post(
           `${this.baseUrl}/chat/completions`,
           {
-            model: config.addisAi.textModel,
+            model: config.addisAi.textModel || "addis-አሌፍ-፩",
             messages: [
               {
                 role: "system",
                 content: `You are an expert Ethiopian medical localization assistant for LisanHealth.
 Translate clinical report explanations into ${targetLanguage === "am" ? "Amharic" : "Afaan Oromoo"}.
-CRITICAL SAFETY RULE: You MUST PRESERVE all numerical values, analyte names, and measurement units identically without altering any numbers.`,
+CRITICAL SAFETY RULE: You MUST PRESERVE all numerical values, analyte names, and measurement units identically without altering any numbers.
+Respond ONLY with a JSON object in this format:
+{
+  "summary": "Localized clinical summary paragraph",
+  "suggested_questions_for_doctor": ["question 1", "question 2"],
+  "disclaimer": "Medical safety disclaimer"
+}`,
               },
               {
                 role: "user",
@@ -106,9 +111,55 @@ CRITICAL SAFETY RULE: You MUST PRESERVE all numerical values, analyte names, and
 
         const content = response.data?.choices?.[0]?.message?.content;
         if (content) {
-          const parsed = JSON.parse(content) as LocalizedExplanation;
-          verifyLocalizationPreservation(explanation, parsed);
-          return parsed;
+          let clean = content.trim();
+          if (clean.startsWith("```")) {
+            clean = clean.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+          }
+
+          try {
+            const parsed = JSON.parse(clean);
+            if (parsed && (parsed.summary || parsed.test_category)) {
+              const localized: LocalizedExplanation = {
+                language: targetLanguage,
+                test_category: explanation.test_category,
+                summary: parsed.summary || clean,
+                overall_status: explanation.overall_status,
+                analytes: explanation.analytes.map((a) => {
+                  const matchingParsed = (parsed.analytes || []).find((pa: any) => pa.name === a.name);
+                  return {
+                    ...a,
+                    localized_explanation: matchingParsed?.localized_explanation || a.plain_explanation,
+                  };
+                }),
+                suggested_questions_for_doctor: parsed.suggested_questions_for_doctor || parsed.questions_for_doctor || [
+                  targetLanguage === "am" ? "ይህ ምርመራ ለዕለታዊ ጤንነቴ ምን ትርጉም አለው?" : "Bu'aan kun fayyaa kiyyaaf maal jechuudha?",
+                  targetLanguage === "am" ? "ተጨማሪ ምርመራ ወይም የአኗኗር ለውጥ ያስፈልገኛል?" : "Qorannoo dabalataa gochuun na barbaachisaa?",
+                ],
+                disclaimer: parsed.disclaimer || (targetLanguage === "am"
+                  ? "ይህ ማብራሪያ ለትምህርታዊ ግንዛቤ ብቻ የቀረበ ሲሆን የሕክምና ምርመራ ወይም ማዘዣ አይተካም።"
+                  : "Ibsi kun hubannoo fi barnootaaf qofa kan qophaa'e dha."),
+              };
+              verifyLocalizationPreservation(explanation, localized);
+              return localized;
+            }
+          } catch {
+            // Natural language text response fallback: safely wrap in LocalizedExplanation
+            const localized: LocalizedExplanation = {
+              language: targetLanguage,
+              test_category: explanation.test_category,
+              summary: clean,
+              overall_status: explanation.overall_status,
+              analytes: explanation.analytes.map((a) => ({ ...a, localized_explanation: a.plain_explanation })),
+              suggested_questions_for_doctor: [
+                targetLanguage === "am" ? "ይህ ምርመራ ለዕለታዊ ጤንነቴ ምን ትርጉም አለው?" : "Bu'aan kun fayyaa kiyyaaf maal jechuudha?",
+              ],
+              disclaimer: targetLanguage === "am"
+                ? "ይህ ማብራሪያ ለትምህርታዊ ግንዛቤ ብቻ የቀረበ ሲሆን የሕክምና ምርመራ ወይም ማዘዣ አይተካም።"
+                : "Ibsi kun hubannoo fi barnootaaf qofa kan qophaa'e dha.",
+            };
+            verifyLocalizationPreservation(explanation, localized);
+            return localized;
+          }
         }
       } catch (err: any) {
         console.warn(`[Addis AI] Live API request failed (${err.message}); utilizing high-fidelity medical localization.`);
@@ -208,16 +259,16 @@ CRITICAL SAFETY RULE: You MUST PRESERVE all numerical values, analyte names, and
     }
 
     // Generate valid WAV audio file with RIFF header
-    const wavBuffer = this.generateSyntheticWav();
+    const estimatedDuration = Math.max(4, Math.min(60, Math.ceil(text.length / 15)));
+    const wavBuffer = this.generateSyntheticWav(estimatedDuration);
     fs.writeFileSync(audioPath, wavBuffer);
     return { audioId, audioPath };
   }
 
-  private generateSyntheticWav(): Buffer {
+  private generateSyntheticWav(durationSeconds: number = 6): Buffer {
     const sampleRate = 16000;
     const numChannels = 1;
     const bitsPerSample = 16;
-    const durationSeconds = 3;
     const numSamples = sampleRate * durationSeconds;
     const dataSize = numSamples * numChannels * (bitsPerSample / 8);
     const headerSize = 44;

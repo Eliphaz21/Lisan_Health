@@ -34,8 +34,14 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ language, explanationT
             utterance.lang = 'en-US';
           }
 
+          const estDuration = Math.max(4, Math.ceil(textToSpeak.length / (12 * playbackSpeed)));
+          setDuration(estDuration);
+
           utterance.onstart = () => setIsPlaying(true);
-          utterance.onend = () => setIsPlaying(false);
+          utterance.onend = () => {
+            setIsPlaying(false);
+            setCurrentTime(0);
+          };
           utterance.onerror = () => {};
 
           window.speechSynthesis.speak(utterance);
@@ -45,6 +51,20 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ language, explanationT
       // Gracefully continue with HTML5 audio
     }
   }, [language]);
+
+  // Smooth playback progress tracker
+  useEffect(() => {
+    if (!isPlaying) return;
+    const interval = setInterval(() => {
+      setCurrentTime((prev) => {
+        if (audioRef.current && audioRef.current.duration > 0 && !audioRef.current.ended) {
+          return audioRef.current.currentTime;
+        }
+        return Math.min(duration || 10, prev + 0.25);
+      });
+    }, 250);
+    return () => clearInterval(interval);
+  }, [isPlaying, duration]);
 
   // Reset audio when language or text changes
   useEffect(() => {
@@ -136,6 +156,9 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ language, explanationT
       });
 
       audio.addEventListener('ended', () => {
+        if (typeof window !== 'undefined' && window.speechSynthesis && window.speechSynthesis.speaking) {
+          return;
+        }
         setIsPlaying(false);
         setCurrentTime(0);
       });

@@ -22,7 +22,7 @@ export const config = {
 
   // Security
   jwtSecret: process.env.SECRET_KEY || "d3eccfbc4acb10b77bb53cee4ef6c57f6363f8969ebbd8dbe1749901ed40bfec",
-  jwtExpiresIn: process.env.ACCESS_TOKEN_EXPIRE_MINUTES ? `${process.env.ACCESS_TOKEN_EXPIRE_MINUTES}m` : "60m",
+  jwtExpiresIn: process.env.ACCESS_TOKEN_EXPIRE_MINUTES ? `${process.env.ACCESS_TOKEN_EXPIRE_MINUTES}m` : "7d",
   adminEmail: (process.env.ADMIN_EMAIL || "eliphazyab@gmail.com").toLowerCase().trim(),
 
   // Database
@@ -32,7 +32,7 @@ export const config = {
   addisAi: {
     baseUrl: process.env.ADDIS_AI_BASE_URL || "https://api.addisassistant.com/v1",
     apiKey: process.env.ADDIS_AI_API_KEY || "",
-    textModel: process.env.ADDIS_AI_TEXT_MODEL || "addis-pro",
+    textModel: process.env.ADDIS_AI_TEXT_MODEL || "addis-አሌፍ-፩",
     timeoutMs: parseInt(process.env.ADDIS_AI_TIMEOUT_SECONDS || "30", 10) * 1000,
     ttsEnabled: process.env.ADDIS_AI_TTS_ENABLED !== "false",
     voiceAm: process.env.ADDIS_AI_TTS_DEFAULT_VOICE_AM || "hanna",

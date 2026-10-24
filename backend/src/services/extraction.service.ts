@@ -1,3 +1,5 @@
+import axios from "axios";
+import { config } from "../config";
 import { AnalyteValue, ExtractedReport } from "../types";
 
 interface AnalyteDef {
@@ -10,68 +12,146 @@ interface AnalyteDef {
 }
 
 const KNOWN_ANALYTES: AnalyteDef[] = [
-  { name: "Hemoglobin", aliases: ["hgb", "hb", "hemoglobin"], unit: "g/dL", low: 13.5, high: 17.5, category: "Complete Blood Count" },
-  { name: "White Blood Cells", aliases: ["white blood cells", "white blood count", "wbc", "leukocytes"], unit: "10^3/uL", low: 4.5, high: 11.0, category: "Complete Blood Count" },
-  { name: "Platelets", aliases: ["platelets", "platelet count", "platelet", "plt"], unit: "10^3/uL", low: 150.0, high: 450.0, category: "Complete Blood Count" },
-  { name: "Hematocrit", aliases: ["hematocrit", "hct"], unit: "%", low: 36.0, high: 50.0, category: "Complete Blood Count" },
-  { name: "Total Cholesterol", aliases: ["cholesterol", "total cholesterol", "chol"], unit: "mg/dL", low: 125.0, high: 200.0, category: "Lipid Panel" },
-  { name: "Triglycerides", aliases: ["triglycerides", "trig"], unit: "mg/dL", low: 50.0, high: 150.0, category: "Lipid Panel" },
-  { name: "HDL Cholesterol", aliases: ["hdl", "hdl cholesterol"], unit: "mg/dL", low: 40.0, high: 60.0, category: "Lipid Panel" },
-  { name: "LDL Cholesterol", aliases: ["ldl", "ldl cholesterol"], unit: "mg/dL", low: 0.0, high: 100.0, category: "Lipid Panel" },
-  { name: "Fasting Blood Glucose", aliases: ["glucose", "fbs", "blood sugar", "glu"], unit: "mg/dL", low: 70.0, high: 99.0, category: "Metabolic Panel" },
-  { name: "Serum Creatinine", aliases: ["creatinine", "creat"], unit: "mg/dL", low: 0.7, high: 1.3, category: "Renal Function" },
-  { name: "Blood Urea Nitrogen", aliases: ["bun", "urea"], unit: "mg/dL", low: 7.0, high: 20.0, category: "Renal Function" },
+  // --- Complete Blood Count (CBC) ---
+  { name: "Hemoglobin", aliases: ["hemoglobin", "hgb", "hb"], unit: "g/dL", low: 13.5, high: 17.5, category: "Complete Blood Count" },
+  { name: "Hematocrit", aliases: ["hematocrit", "hct", "pcv"], unit: "%", low: 38.0, high: 50.0, category: "Complete Blood Count" },
+  { name: "White Blood Cells", aliases: ["white blood cells", "white blood count", "wbc", "total leukocytes", "leukocytes", "wbc count"], unit: "10^3/uL", low: 4.5, high: 11.0, category: "Complete Blood Count" },
+  { name: "Red Blood Cells", aliases: ["red blood cells", "red blood count", "rbc", "erythrocytes", "rbc count"], unit: "10^6/uL", low: 4.3, high: 5.9, category: "Complete Blood Count" },
+  { name: "Platelets", aliases: ["platelets", "platelet count", "plt", "thrombocytes"], unit: "10^3/uL", low: 150.0, high: 450.0, category: "Complete Blood Count" },
+  { name: "MCV", aliases: ["mcv", "mean corpuscular volume"], unit: "fL", low: 80.0, high: 100.0, category: "Complete Blood Count" },
+  { name: "MCH", aliases: ["mch", "mean corpuscular hemoglobin"], unit: "pg", low: 27.0, high: 33.0, category: "Complete Blood Count" },
+  { name: "MCHC", aliases: ["mchc", "mean corpuscular hgb conc"], unit: "g/dL", low: 32.0, high: 36.0, category: "Complete Blood Count" },
+  { name: "RDW", aliases: ["rdw", "red cell distribution width", "rdw-cv"], unit: "%", low: 11.5, high: 14.5, category: "Complete Blood Count" },
+  { name: "Neutrophils", aliases: ["neutrophils", "neut", "neuts", "segs", "polys"], unit: "%", low: 40.0, high: 75.0, category: "Complete Blood Count" },
+  { name: "Lymphocytes", aliases: ["lymphocytes", "lymph", "lymphs", "lym"], unit: "%", low: 20.0, high: 45.0, category: "Complete Blood Count" },
+  { name: "Monocytes", aliases: ["monocytes", "mono"], unit: "%", low: 2.0, high: 10.0, category: "Complete Blood Count" },
+  { name: "Eosinophils", aliases: ["eosinophils", "eos"], unit: "%", low: 1.0, high: 6.0, category: "Complete Blood Count" },
+  { name: "Basophils", aliases: ["basophils", "baso"], unit: "%", low: 0.0, high: 2.0, category: "Complete Blood Count" },
+
+  // --- Lipid Profile ---
+  { name: "Total Cholesterol", aliases: ["total cholesterol", "cholesterol", "chol"], unit: "mg/dL", low: 125.0, high: 200.0, category: "Lipid Panel" },
+  { name: "Triglycerides", aliases: ["triglycerides", "trig", "trigs"], unit: "mg/dL", low: 50.0, high: 150.0, category: "Lipid Panel" },
+  { name: "HDL Cholesterol", aliases: ["hdl cholesterol", "hdl", "high density lipoprotein"], unit: "mg/dL", low: 40.0, high: 60.0, category: "Lipid Panel" },
+  { name: "LDL Cholesterol", aliases: ["ldl cholesterol", "ldl", "low density lipoprotein"], unit: "mg/dL", low: 0.0, high: 100.0, category: "Lipid Panel" },
+  { name: "VLDL Cholesterol", aliases: ["vldl cholesterol", "vldl"], unit: "mg/dL", low: 5.0, high: 40.0, category: "Lipid Panel" },
+
+  // --- Metabolic, Renal & Diabetes ---
+  { name: "Fasting Blood Glucose", aliases: ["fasting blood glucose", "glucose", "fbs", "blood sugar", "glu", "fasting glucose"], unit: "mg/dL", low: 70.0, high: 99.0, category: "Metabolic Panel" },
+  { name: "Hemoglobin A1c", aliases: ["hba1c", "a1c", "glycated hemoglobin"], unit: "%", low: 4.0, high: 5.6, category: "Metabolic Panel" },
+  { name: "Serum Creatinine", aliases: ["serum creatinine", "creatinine", "creat", "cr"], unit: "mg/dL", low: 0.7, high: 1.3, category: "Renal Function" },
+  { name: "Blood Urea Nitrogen", aliases: ["blood urea nitrogen", "bun", "urea"], unit: "mg/dL", low: 7.0, high: 20.0, category: "Renal Function" },
+  { name: "eGFR", aliases: ["egfr", "estimated gfr", "glomerular filtration rate"], unit: "mL/min/1.73m2", low: 90.0, high: 140.0, category: "Renal Function" },
+  { name: "Uric Acid", aliases: ["uric acid", "urate"], unit: "mg/dL", low: 3.5, high: 7.2, category: "Renal Function" },
+
+  // --- Electrolytes ---
+  { name: "Sodium", aliases: ["sodium", "na"], unit: "mmol/L", low: 135.0, high: 145.0, category: "Electrolytes" },
+  { name: "Potassium", aliases: ["potassium", "k"], unit: "mmol/L", low: 3.5, high: 5.1, category: "Electrolytes" },
+  { name: "Chloride", aliases: ["chloride", "cl"], unit: "mmol/L", low: 96.0, high: 106.0, category: "Electrolytes" },
+  { name: "Calcium", aliases: ["calcium", "ca", "total calcium"], unit: "mg/dL", low: 8.5, high: 10.5, category: "Electrolytes" },
+
+  // --- Liver Function Tests (LFT) ---
+  { name: "ALT (SGPT)", aliases: ["alt", "sgpt", "alanine aminotransferase"], unit: "U/L", low: 7.0, high: 56.0, category: "Liver Function" },
+  { name: "AST (SGOT)", aliases: ["ast", "sgot", "aspartate aminotransferase"], unit: "U/L", low: 10.0, high: 40.0, category: "Liver Function" },
+  { name: "Alkaline Phosphatase", aliases: ["alkaline phosphatase", "alp", "alk phos"], unit: "U/L", low: 44.0, high: 147.0, category: "Liver Function" },
+  { name: "Total Bilirubin", aliases: ["total bilirubin", "t-bili", "bilirubin total", "bili"], unit: "mg/dL", low: 0.2, high: 1.2, category: "Liver Function" },
+  { name: "Direct Bilirubin", aliases: ["direct bilirubin", "d-bili", "conjugated bilirubin"], unit: "mg/dL", low: 0.0, high: 0.3, category: "Liver Function" },
+  { name: "Albumin", aliases: ["albumin", "alb"], unit: "g/dL", low: 3.5, high: 5.0, category: "Liver Function" },
+  { name: "Total Protein", aliases: ["total protein", "tp"], unit: "g/dL", low: 6.0, high: 8.3, category: "Liver Function" },
+
+  // --- Thyroid & Inflammation ---
+  { name: "TSH", aliases: ["tsh", "thyroid stimulating hormone"], unit: "uIU/mL", low: 0.4, high: 4.0, category: "Thyroid Panel" },
+  { name: "Free T4", aliases: ["free t4", "ft4", "free thyroxine"], unit: "ng/dL", low: 0.8, high: 1.8, category: "Thyroid Panel" },
+  { name: "ESR", aliases: ["esr", "erythrocyte sedimentation rate"], unit: "mm/hr", low: 0.0, high: 20.0, category: "Inflammatory Markers" },
+  { name: "CRP", aliases: ["crp", "c-reactive protein"], unit: "mg/L", low: 0.0, high: 3.0, category: "Inflammatory Markers" },
 ];
 
+/**
+ * Parses raw textual lab report content into structured ExtractedReport using regex pattern matching.
+ */
 export function extractReportFromText(text: string): ExtractedReport {
   const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
   const analytes: AnalyteValue[] = [];
-  let detectedCategory = "General Lab Report";
+  const categoryCounts: Record<string, number> = {};
 
   for (const line of lines) {
+    // Normalize line by replacing multiple whitespace/tabs with single space
+    const cleanLine = line.replace(/\s+/g, " ");
+
     for (const def of KNOWN_ANALYTES) {
+      if (analytes.some((a) => a.name === def.name)) continue;
+
       for (const alias of def.aliases) {
-        // Regex pattern: alias followed by colon or spaces then numerical value
-        const regex = new RegExp(`\\b${alias}\\b\\s*[:=-]?\\s*([0-9]+\\.?[0-9]*)`, "i");
-        const match = line.match(regex);
+        // Regex supports formats:
+        // "Hemoglobin: 11.2 g/dL"
+        // "HGB 11.2"
+        // "Platelets | 210 | 10^3/uL | 150-450"
+        // "WBC   14.2   10^3/uL   HIGH"
+        const escaped = alias.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const pattern = new RegExp(
+          `(?:^|[|\\t\\s,])${escaped}(?:[:=\\s|\\t]+)([0-9]+(?:\\.[0-9]+)?)`,
+          "i"
+        );
+
+        const match = cleanLine.match(pattern);
         if (match && match[1]) {
           const val = parseFloat(match[1]);
           if (!isNaN(val)) {
-            // Check if analyte already extracted
-            if (!analytes.some((a) => a.name === def.name)) {
-              let flag: AnalyteValue["flag"] = "NORMAL";
-              if (val < def.low) flag = "LOW";
-              else if (val > def.high) flag = "HIGH";
+            let flag: AnalyteValue["flag"] = "NORMAL";
+            if (val < def.low) flag = "LOW";
+            else if (val > def.high) flag = "HIGH";
 
-              analytes.push({
-                name: def.name,
-                value: val,
-                unit: def.unit,
-                reference_range_low: def.low,
-                reference_range_high: def.high,
-                flag,
-                interpretation_hint: flag !== "NORMAL" ? `Out of reference range (${def.low} - ${def.high} ${def.unit})` : "Within normal limits",
-              });
-              detectedCategory = def.category;
-            }
+            analytes.push({
+              name: def.name,
+              value: val,
+              unit: def.unit,
+              reference_range_low: def.low,
+              reference_range_high: def.high,
+              flag,
+              interpretation_hint:
+                flag !== "NORMAL"
+                  ? `Out of reference range (${def.low} - ${def.high} ${def.unit})`
+                  : "Within normal limits",
+            });
+
+            categoryCounts[def.category] = (categoryCounts[def.category] || 0) + 1;
+            break;
           }
         }
       }
     }
   }
 
-  // If no known analyte was found by regex, create synthetic fallback from text
+  // Determine panel category with highest analyte matches
+  let detectedCategory = "General Lab Report";
+  let maxCount = 0;
+  for (const [cat, count] of Object.entries(categoryCounts)) {
+    if (count > maxCount) {
+      maxCount = count;
+      detectedCategory = cat;
+    }
+  }
+
+  // Generic fallback if standard known tests not found: extract ANY numeric test lines
   if (analytes.length === 0) {
-    analytes.push({
-      name: "Hemoglobin",
-      value: 14.2,
-      unit: "g/dL",
-      reference_range_low: 13.5,
-      reference_range_high: 17.5,
-      flag: "NORMAL",
-      interpretation_hint: "Within standard limits",
-    });
-    detectedCategory = "Complete Blood Count";
+    for (const line of lines.slice(0, 30)) {
+      const genericMatch = line.match(/^([A-Za-z\s]{3,25})[:|=]\s*([0-9]+(?:\.[0-9]+)?)\s*([A-Za-z/%^0-9]*)/);
+      if (genericMatch && genericMatch[1] && genericMatch[2]) {
+        const testName = genericMatch[1].trim();
+        const testVal = parseFloat(genericMatch[2]);
+        const testUnit = genericMatch[3]?.trim() || "unit";
+        if (testName.length > 2 && !analytes.some((a) => a.name.toLowerCase() === testName.toLowerCase())) {
+          analytes.push({
+            name: testName,
+            value: testVal,
+            unit: testUnit,
+            reference_range_low: 0,
+            reference_range_high: 100,
+            flag: "NORMAL",
+            interpretation_hint: "Extracted from clinical document",
+          });
+        }
+      }
+    }
   }
 
   return {
@@ -82,73 +162,156 @@ export function extractReportFromText(text: string): ExtractedReport {
 }
 
 /**
- * Extracts clinical lab report from an uploaded file buffer (PDF, image, or text).
+ * Intelligent AI clinical extractor using Addis AI model
  */
-export function extractReportFromFileBuffer(
+export async function extractReportWithAi(text: string): Promise<ExtractedReport | null> {
+  if (!config.addisAi.apiKey) return null;
+
+  try {
+    const prompt = `You are a medical laboratory data extraction assistant for LisanHealth.
+Analyze the following medical report text and extract all laboratory analytes, measured values, units, reference intervals, and flags.
+CRITICAL MEDICAL SAFETY: NEVER invent or hallucinate test results. Extract ONLY values genuinely present in the text.
+
+Respond ONLY with a JSON object in this exact schema:
+{
+  "test_category": "Clinical Laboratory Report",
+  "analytes": [
+    {
+      "name": "Hemoglobin",
+      "value": 11.2,
+      "unit": "g/dL",
+      "reference_range_low": 13.5,
+      "reference_range_high": 17.5,
+      "flag": "LOW"
+    }
+  ]
+}
+
+Report Text:
+${text.slice(0, 4000)}`;
+
+    const response = await axios.post(
+      `${config.addisAi.baseUrl}/chat/completions`,
+      {
+        model: config.addisAi.textModel,
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.1,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${config.addisAi.apiKey}`,
+          "Content-Type": "application/json",
+        },
+        timeout: config.addisAi.timeoutMs,
+      }
+    );
+
+    const rawContent = response.data?.choices?.[0]?.message?.content;
+    if (rawContent) {
+      let clean = rawContent.trim();
+      if (clean.startsWith("```")) {
+        clean = clean.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+      }
+      const parsed = JSON.parse(clean);
+      if (parsed && Array.isArray(parsed.analytes) && parsed.analytes.length > 0) {
+        const analytes: AnalyteValue[] = parsed.analytes.map((a: any) => ({
+          name: String(a.name || "Test"),
+          value: Number(a.value) || 0,
+          unit: String(a.unit || ""),
+          reference_range_low: Number(a.reference_range_low) || 0,
+          reference_range_high: Number(a.reference_range_high) || 0,
+          flag: (a.flag || "NORMAL").toUpperCase(),
+          interpretation_hint: a.flag !== "NORMAL" ? `Flagged as ${a.flag}` : "Within normal limits",
+        }));
+
+        return {
+          test_category: parsed.test_category || "Clinical Lab Report",
+          analytes,
+          raw_text: text,
+        };
+      }
+    }
+  } catch (err: any) {
+    console.warn("[Addis AI Extraction Fallback]", err.message);
+  }
+
+  return null;
+}
+
+/**
+ * Extracts clinical lab report from an uploaded file buffer (PDF, image, or text).
+ * Fully asynchronous with native PDF stream decoding and AI validation.
+ */
+export async function extractReportFromFileBuffer(
   buffer: Buffer,
   originalname: string,
   mimetype: string
-): ExtractedReport {
+): Promise<ExtractedReport> {
   const lowerName = originalname.toLowerCase();
+  let extractedText = "";
 
   // 1. Plain text / CSV files
   if (mimetype.includes("text") || lowerName.endsWith(".txt") || lowerName.endsWith(".csv")) {
-    const text = buffer.toString("utf-8");
-    return extractReportFromText(text);
+    extractedText = buffer.toString("utf-8");
   }
 
-  // 2. PDF Documents - extract printable text streams & tokens
+  // 2. Real PDF Documents (extract all text with pdf-parse)
   if (mimetype === "application/pdf" || lowerName.endsWith(".pdf")) {
-    const pdfRaw = buffer.toString("binary");
-    // Extract readable text chunks from PDF streams
-    const matches = pdfRaw.match(/[a-zA-Z0-9\s:.,><=/%-]{3,}/g) || [];
-    const extractedText = matches.join("\n");
-    const report = extractReportFromText(extractedText);
-
-    if (report.analytes.length > 0 && report.analytes[0].name !== "Hemoglobin" || extractedText.includes("Hemoglobin")) {
-      return {
-        ...report,
-        test_category: report.test_category || "Uploaded PDF Report",
-        raw_text: `PDF Document: ${originalname}\n${extractedText.substring(0, 500)}`,
-      };
+    try {
+      const { PDFParse } = require("pdf-parse");
+      const parser = new PDFParse({ data: buffer });
+      const res = await parser.getText();
+      await parser.destroy();
+      extractedText = (res.text || "").trim();
+    } catch (pdfErr: any) {
+      console.warn("[PDF Parse Error, using buffer fallback]", pdfErr.message);
+      // Fallback: extract printable strings from raw buffer
+      const raw = buffer.toString("binary");
+      const matches = raw.match(/[a-zA-Z0-9\s:.,><=/%-]{3,}/g) || [];
+      extractedText = matches.join("\n");
     }
   }
 
-  // 3. Scanned Images / Fallback OCR (PNG, JPG, JPEG)
-  // If image or unstructured file, identify test panel from filename context or standard laboratory profile
-  let category = "Complete Blood Count (CBC)";
-  let rawText = `Uploaded Medical Scan: ${originalname}`;
-  let analytes: AnalyteValue[] = [];
+  // If text was extracted from PDF or text file
+  if (extractedText.length > 0) {
+    // Try deterministic regex extraction first
+    const regexReport = extractReportFromText(extractedText);
+    if (regexReport.analytes.length >= 2) {
+      return regexReport;
+    }
 
+    // Try Addis AI extraction if regex found few analytes
+    const aiReport = await extractReportWithAi(extractedText);
+    if (aiReport && aiReport.analytes.length > 0) {
+      return aiReport;
+    }
+
+    if (regexReport.analytes.length > 0) {
+      return regexReport;
+    }
+
+    // If text was found but no analytes parsed, return the raw document without fake data
+    return {
+      test_category: `Clinical Document (${originalname})`,
+      analytes: [],
+      raw_text: extractedText,
+    };
+  }
+
+  // 3. Fallback for image scans (PNG, JPG) without readable OCR stream:
+  // Detect panel category from filename or clinical context
+  let category = "Clinical Laboratory Scan";
   if (lowerName.includes("lipid") || lowerName.includes("cholesterol")) {
     category = "Lipid Profile Panel";
-    rawText = "Total Cholesterol: 220.0 mg/dL\nTriglycerides: 175.0 mg/dL\nHDL Cholesterol: 38.0 mg/dL\nLDL Cholesterol: 147.0 mg/dL";
-    analytes = [
-      { name: "Total Cholesterol", value: 220.0, unit: "mg/dL", reference_range_low: 125.0, reference_range_high: 200.0, flag: "HIGH", interpretation_hint: "Above normal reference limit" },
-      { name: "Triglycerides", value: 175.0, unit: "mg/dL", reference_range_low: 50.0, reference_range_high: 150.0, flag: "HIGH", interpretation_hint: "Elevated triglyceride level" },
-      { name: "HDL Cholesterol", value: 38.0, unit: "mg/dL", reference_range_low: 40.0, reference_range_high: 60.0, flag: "LOW", interpretation_hint: "Below protective threshold" },
-      { name: "LDL Cholesterol", value: 147.0, unit: "mg/dL", reference_range_low: 0.0, reference_range_high: 100.0, flag: "HIGH", interpretation_hint: "Above optimal range" },
-    ];
-  } else if (lowerName.includes("metabolic") || lowerName.includes("glucose") || lowerName.includes("sugar")) {
+  } else if (lowerName.includes("cbc") || lowerName.includes("blood")) {
+    category = "Complete Blood Count (CBC)";
+  } else if (lowerName.includes("metabolic") || lowerName.includes("glucose")) {
     category = "Metabolic Panel";
-    rawText = "Fasting Blood Glucose: 135.0 mg/dL\nSerum Creatinine: 1.1 mg/dL";
-    analytes = [
-      { name: "Fasting Blood Glucose", value: 135.0, unit: "mg/dL", reference_range_low: 70.0, reference_range_high: 99.0, flag: "HIGH", interpretation_hint: "Elevated fasting blood sugar" },
-      { name: "Serum Creatinine", value: 1.1, unit: "mg/dL", reference_range_low: 0.7, reference_range_high: 1.3, flag: "NORMAL", interpretation_hint: "Within normal limits" },
-    ];
-  } else {
-    // Default Complete Blood Count
-    rawText = "Hemoglobin: 11.2 g/dL\nWhite Blood Cells: 6.8 10^3/uL\nPlatelets: 210.0 10^3/uL";
-    analytes = [
-      { name: "Hemoglobin", value: 11.2, unit: "g/dL", reference_range_low: 13.5, reference_range_high: 17.5, flag: "LOW", interpretation_hint: "Below reference range (mild anemia indicator)" },
-      { name: "White Blood Cells", value: 6.8, unit: "10^3/uL", reference_range_low: 4.5, reference_range_high: 11.0, flag: "NORMAL", interpretation_hint: "Within normal limits" },
-      { name: "Platelets", value: 210.0, unit: "10^3/uL", reference_range_low: 150.0, reference_range_high: 450.0, flag: "NORMAL", interpretation_hint: "Within normal limits" },
-    ];
   }
 
   return {
     test_category: category,
-    analytes,
-    raw_text: rawText,
+    analytes: [],
+    raw_text: `Uploaded medical image file: ${originalname} (${mimetype}). Please ensure test results are typed or provided in text/PDF format for zero-error clinical extraction.`,
   };
 }

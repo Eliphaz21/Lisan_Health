@@ -57,7 +57,7 @@ export const pipelineController = {
       }
 
       const lang = req.body.target_language === "om" ? "om" : "am";
-      const extracted = extractReportFromFileBuffer(file.buffer, file.originalname, file.mimetype);
+      const extracted = await extractReportFromFileBuffer(file.buffer, file.originalname, file.mimetype);
 
       // Stage A: Provider A Clinical Reasoning (English)
       const englishExplanation = explainReportInEnglish(extracted);

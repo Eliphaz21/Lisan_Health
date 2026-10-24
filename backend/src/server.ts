@@ -8,6 +8,21 @@ async function bootstrap() {
   // Connect & initialize database
   await initDb();
 
+  // Hydrate dynamic AI configurations from database if stored
+  try {
+    const { db } = await import("./db");
+    const dbKey = await db.getSystemConfig("ADDIS_AI_KEY");
+    if (dbKey && dbKey.trim()) {
+      config.addisAi.apiKey = dbKey.trim();
+    }
+    const dbUrl = await db.getSystemConfig("ADDIS_AI_BASE_URL");
+    if (dbUrl && dbUrl.trim()) {
+      config.addisAi.baseUrl = dbUrl.trim();
+    }
+  } catch (err) {
+    console.warn("[Config Sync Warning] Could not hydrate dynamic system configs:", err);
+  }
+
   app.listen(config.port, () => {
     console.log(`[LisanHealth Backend] Server listening on http://localhost:${config.port}`);
     console.log(`[LisanHealth Backend] Admin email: ${config.adminEmail}`);
