@@ -11,7 +11,6 @@ import { HistoryPage } from './pages/HistoryPage';
 import type { ExtractedLabReport, HealthStatus, SupportedLanguage, LabObservation } from './types/report';
 import type { User } from './types/auth';
 import { Footer } from './components/Footer';
-import { PolicyPage } from './pages/PolicyPage';
 
 export const App: React.FC = () => {
   const [currentLanguage, setCurrentLanguage] = useState<SupportedLanguage>('am');
@@ -347,10 +346,6 @@ export const App: React.FC = () => {
             element={<AdminPage currentUser={user} token={token} />}
           />
 
-          <Route path="/privacy" element={<PolicyPage kind="privacy" />} />
-          <Route path="/terms" element={<PolicyPage kind="terms" />} />
-          <Route path="/medical-safety" element={<PolicyPage kind="medical" />} />
-          <Route path="/data-deletion" element={<PolicyPage kind="deletion" />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
 
@@ -367,7 +362,7 @@ export const App: React.FC = () => {
           token={token}
           onSelectReport={handleLoadReport}
         />
-        <Footer />
+        <Footer language={currentLanguage} />
       </div>
     </BrowserRouter>
   );
