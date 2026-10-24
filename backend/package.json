@@ -9,7 +9,11 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "test": "tsx src/verify_backend.ts"
+    "test": "tsx src/verify_backend.ts",
+    "db": "tsx src/db-cli.ts",
+    "db:users": "tsx src/db-cli.ts users",
+    "db:reports": "tsx src/db-cli.ts reports",
+    "db:stats": "tsx src/db-cli.ts stats"
   },
   "keywords": [],
   "author": "",
