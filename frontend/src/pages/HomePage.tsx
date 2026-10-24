@@ -3,7 +3,7 @@ import { LanguageSelector } from '../components/LanguageSelector';
 import { ReportUpload } from '../components/ReportUpload';
 import { ObservationTable } from '../components/ObservationTable';
 import { AudioPlayer } from '../components/AudioPlayer';
-import { StethoscopeIcon, AlertShieldIcon, TrashIcon } from '../components/Icons';
+import { StethoscopeIcon, AlertShieldIcon, TrashIcon, HeartPulseIcon, ShieldCheckIcon } from '../components/Icons';
 import type { ExtractedLabReport, SupportedLanguage } from '../types/report';
 import { translations } from '../utils/i18n';
 
@@ -171,6 +171,35 @@ export const HomePage: React.FC<HomePageProps> = ({
             warnings={report.warnings}
             language={currentLanguage}
           />
+
+          {/* Detailed Clinical Analysis Card */}
+          <div className="card" style={{ marginTop: '1.5rem', borderLeft: '4px solid var(--color-primary, #0D9488)' }}>
+            <h3 style={{ fontSize: '1.1rem', marginBottom: '0.65rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-primary-dark)' }}>
+              <HeartPulseIcon size={22} color="var(--color-primary)" />
+              <span>{t.detailedExplanationTitle}</span>
+            </h3>
+            <p style={{ fontSize: '0.95rem', lineHeight: 1.7, color: 'var(--color-graphite)', margin: 0 }}>
+              {explanationData?.explanation_localized?.detailed_explanation || explanationData?.explanation_localized?.summary || report.raw_text}
+            </p>
+          </div>
+
+          {/* Cultural Nutrition & Dietary Wellness Card */}
+          {explanationData?.explanation_localized?.cultural_wellness_recommendations && explanationData.explanation_localized.cultural_wellness_recommendations.length > 0 && (
+            <div className="card" style={{ marginTop: '1.5rem', background: '#F0FDF4', border: '1px solid #BBF7D0' }}>
+              <h3 style={{ fontSize: '1.05rem', marginBottom: '0.65rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#14532D' }}>
+                <ShieldCheckIcon size={20} color="#16A34A" />
+                <span>{t.culturalWellnessTitle}</span>
+              </h3>
+              <ul style={{ margin: '0.25rem 0 0 1.25rem', color: '#166534', fontSize: '0.9rem', lineHeight: 1.6 }}>
+                {explanationData.explanation_localized.cultural_wellness_recommendations.map((rec: string, idx: number) => (
+                  <li key={idx} style={{ marginBottom: '0.35rem' }}>{rec}</li>
+                ))}
+              </ul>
+              <div style={{ marginTop: '0.75rem', fontSize: '0.8rem', color: '#15803D', fontStyle: 'italic' }}>
+                * ማስታወሻ: ማንኛውንም ባህላዊ መድኃኒት ወይም የዕፅዋት ቅመሞች ከመውሰድዎ በፊት ሁልጊዜ ከባለሙያ ሐኪም ጋር ይማከሩ።
+              </div>
+            </div>
+          )}
 
           <div className="card card-doctor-questions" style={{ marginTop: '1.5rem' }}>
             <h3 style={{ fontSize: '1.1rem', marginBottom: '0.65rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

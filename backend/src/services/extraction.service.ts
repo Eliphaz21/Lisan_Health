@@ -287,8 +287,8 @@ CRITICAL MEDICAL SAFETY:
             parts: [
               { text: prompt },
               {
-                inline_data: {
-                  mime_type: mime,
+                inlineData: {
+                  mimeType: mime,
                   data: base64Data,
                 },
               },

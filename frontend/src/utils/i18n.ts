@@ -39,6 +39,8 @@ export interface Translations {
   selectedFile: string;
   analyzing: string;
   changeFile: string;
+  detailedExplanationTitle: string;
+  culturalWellnessTitle: string;
 }
 
 export const translations: Record<SupportedLanguage, Translations> = {
@@ -92,6 +94,8 @@ export const translations: Record<SupportedLanguage, Translations> = {
     selectedFile: "Uploaded Report",
     analyzing: "Analyzing Report with Dual-AI...",
     changeFile: "Upload Another File",
+    detailedExplanationTitle: "In-Depth Clinical Analysis",
+    culturalWellnessTitle: "Ethiopian Cultural Nutrition & Wellness Considerations",
   },
   am: {
     appName: "ልሳን ጤና (LisanHealth)",
@@ -143,6 +147,8 @@ export const translations: Record<SupportedLanguage, Translations> = {
     selectedFile: "የተሰቀለው ሪፖርት",
     analyzing: "በDual-AI በመተንተን ላይ...",
     changeFile: "ሌላ ፋይል ምረጥ",
+    detailedExplanationTitle: "የተብራራ የላብራቶሪ ውጤቶች ማብራሪያ",
+    culturalWellnessTitle: "ባህላዊ የአመጋገብ እና የጤንነት ምክሮች",
   },
   om: {
     appName: "LisanHealth (Fayyaa Lisan)",
@@ -194,5 +200,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
     selectedFile: "Gabaasa Olkaawame",
     analyzing: "Dual-AI'n xiinxalamaa jira...",
     changeFile: "Faayilii Jijjiiri",
+    detailedExplanationTitle: "Ibsa Bal'aa Bu'aa Qorannoo",
+    culturalWellnessTitle: "Hubannoo Soorata Aadaa fi Fayyummaa",
   },
 };

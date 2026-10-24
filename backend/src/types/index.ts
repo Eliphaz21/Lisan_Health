@@ -65,6 +65,8 @@ export interface LocalizedExplanation {
   overall_status: string;
   analytes: Array<AnalyteExplanation & { localized_explanation?: string }>;
   suggested_questions_for_doctor: string[];
+  cultural_wellness_recommendations?: string[];
+  detailed_explanation?: string;
   disclaimer: string;
 }
 

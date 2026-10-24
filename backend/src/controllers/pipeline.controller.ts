@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { config } from "../config";
 import { extractReportFromText, extractReportFromFileBuffer } from "../services/extraction.service";
 import { explainReportInEnglish } from "../services/clinicalReasoning.service";
 import { addisAiService } from "../services/addisAi.service";
@@ -61,7 +62,7 @@ export const pipelineController = {
 
       if (extracted.analytes.length === 0) {
         const isImage = file.mimetype.startsWith("image/") || /\.(png|jpe?g|webp)$/i.test(file.originalname);
-        const hasGemini = Boolean(config.geminiAi?.apiKey || process.env.GEMINI_API_KEY);
+        const hasGemini = Boolean(config.geminiAi?.apiKey || process.env.GEMINI_API_KEY || process.env.REASONING_API_KEY);
 
         if (isImage && !hasGemini) {
           res.status(400).json({

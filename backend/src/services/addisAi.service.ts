@@ -85,11 +85,20 @@ export class AddisAiService {
                 role: "system",
                 content: `You are an expert Ethiopian medical localization assistant for LisanHealth.
 Translate clinical report explanations into ${targetLanguage === "am" ? "Amharic" : "Afaan Oromoo"}.
+Provide:
+1. "summary": Clear plain-language patient summary.
+2. "detailed_explanation": Comprehensive paragraph explaining what these specific laboratory findings signify in daily health.
+3. "suggested_questions_for_doctor": 2 to 3 practical questions the patient should ask their clinician.
+4. "cultural_wellness_recommendations": 2 to 3 safe Ethiopian nutritional and dietary wellness considerations (e.g. iron-rich teff/ጤፍ, flaxseed/ቴልባ, green vegetables/ጎመን, moringa/ሽፈራው, balanced traditional meals, and hydration) alongside reminding the patient to consult their physician.
+5. "disclaimer": Medical safety disclaimer.
+
 CRITICAL SAFETY RULE: You MUST PRESERVE all numerical values, analyte names, and measurement units identically without altering any numbers.
 Respond ONLY with a JSON object in this format:
 {
   "summary": "Localized clinical summary paragraph",
+  "detailed_explanation": "Detailed physiological explanation in local language",
   "suggested_questions_for_doctor": ["question 1", "question 2"],
+  "cultural_wellness_recommendations": ["recommendation 1", "recommendation 2"],
   "disclaimer": "Medical safety disclaimer"
 }`,
               },
@@ -123,6 +132,7 @@ Respond ONLY with a JSON object in this format:
                 language: targetLanguage,
                 test_category: explanation.test_category,
                 summary: parsed.summary || clean,
+                detailed_explanation: parsed.detailed_explanation || parsed.summary || clean,
                 overall_status: explanation.overall_status,
                 analytes: explanation.analytes.map((a) => {
                   const matchingParsed = (parsed.analytes || []).find((pa: any) => pa.name === a.name);
@@ -135,6 +145,15 @@ Respond ONLY with a JSON object in this format:
                   targetLanguage === "am" ? "ይህ ምርመራ ለዕለታዊ ጤንነቴ ምን ትርጉም አለው?" : "Bu'aan kun fayyaa kiyyaaf maal jechuudha?",
                   targetLanguage === "am" ? "ተጨማሪ ምርመራ ወይም የአኗኗር ለውጥ ያስፈልገኛል?" : "Qorannoo dabalataa gochuun na barbaachisaa?",
                 ],
+                cultural_wellness_recommendations: parsed.cultural_wellness_recommendations || (targetLanguage === "am"
+                  ? [
+                      "የተመጣጠነ ምግብ (እንደ ጤፍ፣ ቴልባ እና ትኩስ አትክልቶች) መመገብ የደም እና የሰውነት ጥንካሬን ይደግፋል።",
+                      "ማንኛውንም ባህላዊ መድኃኒት ወይም የዕፅዋት ቅመሞች ከመውሰድዎ በፊት ሁልጊዜ ከሐኪምዎ ጋር ይማከሩ።",
+                    ]
+                  : [
+                      "Soorata madaalawaa (kan akka xaafii, talbaa fi muduraalee) soorachuun dandeettii qaamaa ni gabbisa.",
+                      "Qoricha aadaa yookiin baala kamiyyuu fudhachuu dura yeroo hunda ogeessa fayyaa keessan mariisisaa.",
+                    ]),
                 disclaimer: parsed.disclaimer || (targetLanguage === "am"
                   ? "ይህ ማብራሪያ ለትምህርታዊ ግንዛቤ ብቻ የቀረበ ሲሆን የሕክምና ምርመራ ወይም ማዘዣ አይተካም።"
                   : "Ibsi kun hubannoo fi barnootaaf qofa kan qophaa'e dha."),
@@ -148,11 +167,21 @@ Respond ONLY with a JSON object in this format:
               language: targetLanguage,
               test_category: explanation.test_category,
               summary: clean,
+              detailed_explanation: clean,
               overall_status: explanation.overall_status,
               analytes: explanation.analytes.map((a) => ({ ...a, localized_explanation: a.plain_explanation })),
               suggested_questions_for_doctor: [
                 targetLanguage === "am" ? "ይህ ምርመራ ለዕለታዊ ጤንነቴ ምን ትርጉም አለው?" : "Bu'aan kun fayyaa kiyyaaf maal jechuudha?",
               ],
+              cultural_wellness_recommendations: targetLanguage === "am"
+                ? [
+                    "የተመጣጠነ ምግብ (እንደ ጤፍ እና አትክልቶች) መመገብ የሰውነትን ጥንካሬ ይደግፋል።",
+                    "ማንኛውንም ባህላዊ መድኃኒት ከመውሰድዎ በፊት ሁልጊዜ ከሐኪምዎ ጋር ይማከሩ።",
+                  ]
+                : [
+                    "Soorata madaalawaa soorachuun fayyaa qaamaa ni eega.",
+                    "Qoricha aadaa kamiyyuu dura ogeessa fayyaa mariisisaa.",
+                  ],
               disclaimer: targetLanguage === "am"
                 ? "ይህ ማብራሪያ ለትምህርታዊ ግንዛቤ ብቻ የቀረበ ሲሆን የሕክምና ምርመራ ወይም ማዘዣ አይተካም።"
                 : "Ibsi kun hubannoo fi barnootaaf qofa kan qophaa'e dha.",
