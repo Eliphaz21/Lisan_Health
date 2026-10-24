@@ -7,6 +7,7 @@ import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { AdminPage } from './pages/AdminPage';
+import { HistoryPage } from './pages/HistoryPage';
 import type { ExtractedLabReport, HealthStatus, SupportedLanguage, LabObservation } from './types/report';
 import type { User } from './types/auth';
 
@@ -225,6 +226,33 @@ export const App: React.FC = () => {
     }
   };
 
+  const handleLoadReport = (loaded: any) => {
+    setExplanationData(loaded);
+    const obs: LabObservation[] = (loaded.extracted?.analytes || []).map((a: any) => ({
+      test_name: a.name,
+      code: (a.name || '').substring(0, 4).toUpperCase(),
+      value: a.value,
+      unit: a.unit,
+      reference_interval: {
+        low: a.reference_range_low,
+        high: a.reference_range_high,
+        unit: a.unit,
+      },
+      flag: a.flag,
+      needs_review: a.flag === 'CRITICAL',
+    }));
+
+    setReport({
+      report_id: `HISTORY-${Date.now()}`,
+      panel_name: loaded.extracted?.test_category || 'Clinical Lab Report',
+      raw_text: loaded.explanation_localized?.summary || loaded.explanation_en?.summary || '',
+      observations: obs,
+      status: 'EXTRACTED',
+      confidence_score: 1.0,
+      warnings: [],
+    });
+  };
+
   return (
     <BrowserRouter>
       <div className="app">
@@ -277,6 +305,17 @@ export const App: React.FC = () => {
           />
 
           <Route
+            path="/history"
+            element={
+              <HistoryPage
+                currentUser={user}
+                token={token}
+                onLoadReportIntoHome={handleLoadReport}
+              />
+            }
+          />
+
+          <Route
             path="/admin"
             element={<AdminPage currentUser={user} token={token} />}
           />
@@ -295,32 +334,7 @@ export const App: React.FC = () => {
           isOpen={isHistoryOpen}
           onClose={() => setIsHistoryOpen(false)}
           token={token}
-          onSelectReport={(loaded) => {
-            setExplanationData(loaded);
-            const obs: LabObservation[] = loaded.extracted.analytes.map((a: any) => ({
-              test_name: a.name,
-              code: a.name.substring(0, 4).toUpperCase(),
-              value: a.value,
-              unit: a.unit,
-              reference_interval: {
-                low: a.reference_range_low,
-                high: a.reference_range_high,
-                unit: a.unit,
-              },
-              flag: a.flag,
-              needs_review: a.flag === 'CRITICAL',
-            }));
-
-            setReport({
-              report_id: `HISTORY-${Date.now()}`,
-              panel_name: loaded.extracted.test_category,
-              raw_text: loaded.explanation_localized?.summary || loaded.explanation_en?.summary || '',
-              observations: obs,
-              status: 'EXTRACTED',
-              confidence_score: 1.0,
-              warnings: [],
-            });
-          }}
+          onSelectReport={handleLoadReport}
         />
       </div>
     </BrowserRouter>

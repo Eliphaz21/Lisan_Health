@@ -8,7 +8,7 @@ interface NavbarProps {
   language?: SupportedLanguage;
   user: User | null;
   onOpenAdmin?: () => void;
-  onOpenHistory: () => void;
+  onOpenHistory?: () => void;
   onLogout: () => void;
 }
 
@@ -17,7 +17,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   language: _language,
   user,
   onOpenAdmin: _onOpenAdmin,
-  onOpenHistory,
+  onOpenHistory: _onOpenHistory,
   onLogout,
 }) => {
   return (
@@ -45,8 +45,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* User Logged In Actions */}
           {user ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <button
-                onClick={onOpenHistory}
+              <Link
+                to="/history"
                 style={{
                   background: 'transparent',
                   border: '1px solid var(--color-border)',
@@ -55,11 +55,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                   borderRadius: 'var(--radius-md)',
                   fontSize: '0.8rem',
                   fontWeight: 600,
-                  cursor: 'pointer',
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
                 }}
               >
                 My History
-              </button>
+              </Link>
 
               {user.role === 'ADMIN' && (
                 <Link
