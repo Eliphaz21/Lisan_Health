@@ -1,4 +1,3 @@
-import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
@@ -52,7 +51,7 @@ describe('AdminPage Component Tests', () => {
 
   it('renders admin dashboard and tabs when authenticated as ADMIN', async () => {
     // Mock the fetch responses
-    vi.spyOn(global, 'fetch').mockImplementation((url: RequestInfo | URL) => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation((url: RequestInfo | URL) => {
       const u = url.toString();
       if (u.includes('/api/v1/admin/stats')) {
         return Promise.resolve({

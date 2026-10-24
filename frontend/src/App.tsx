@@ -177,6 +177,7 @@ export const App: React.FC = () => {
 
   const handleLoadSynthetic = async (sampleType: 'cbc' | 'lipid' | 'malformed') => {
     setIsLoading(true);
+    setError(null);
     let payload = SAMPLE_CBC;
     if (sampleType === 'lipid') payload = SAMPLE_LIPID;
     if (sampleType === 'malformed') payload = SAMPLE_MALFORMED;
@@ -192,7 +193,7 @@ export const App: React.FC = () => {
         const extracted = await response.json();
         setReport(extracted);
       } else {
-        throw new Error('Backend returned status ' + response.status);
+        throw new Error('Status ' + response.status);
       }
     } catch {
       setReport({
@@ -204,12 +205,112 @@ export const App: React.FC = () => {
         confidence_score: sampleType === 'malformed' ? 0.75 : 1.0,
         warnings: sampleType === 'malformed' ? ['Missing measurement units detected'] : [],
       });
+    }
+
+    // Also run through pipeline so localized clinical explanation and native voice are generated
+    try {
+      const pipelineRes = await fetch('/api/v1/pipeline/process', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: payload.raw_text,
+          target_language: currentLanguage === 'om' ? 'om' : 'am',
+        }),
+      });
+      if (pipelineRes.ok) {
+        const data = await pipelineRes.json();
+        setExplanationData(data);
+      } else {
+        setExplanationData({
+          extracted: { test_category: payload.panel_name, analytes: payload.observations, raw_text: payload.raw_text },
+          explanation_localized: { summary: payload.raw_text, analytes: [] },
+          audio_url: '/api/v1/speech/stream/synthetic',
+        });
+      }
+    } catch {
+      setExplanationData({
+        extracted: { test_category: payload.panel_name, analytes: payload.observations, raw_text: payload.raw_text },
+        explanation_localized: { summary: payload.raw_text, analytes: [] },
+        audio_url: '/api/v1/speech/stream/synthetic',
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleFileUpload = (file: File) => {
+  const handleFileUpload = async (file: File) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // 1. Try multipart file upload to backend pipeline (supports PDF, PNG, JPG, TXT)
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('target_language', currentLanguage === 'om' ? 'om' : 'am');
+
+      const response = await fetch('/api/v1/pipeline/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setExplanationData(data);
+
+        const obs: LabObservation[] = data.extracted.analytes.map((a: any) => ({
+          test_name: a.name,
+          code: (a.name || '').substring(0, 4).toUpperCase(),
+          value: a.value,
+          unit: a.unit,
+          reference_interval: {
+            low: a.reference_range_low,
+            high: a.reference_range_high,
+            unit: a.unit,
+          },
+          flag: a.flag,
+          needs_review: a.flag === 'CRITICAL' || a.flag === 'UNCERTAIN',
+        }));
+
+        const finalReport: ExtractedLabReport = {
+          report_id: `REP-${Date.now()}`,
+          panel_name: data.extracted.test_category || `Report (${file.name})`,
+          raw_text: data.explanation_localized?.summary || data.explanation_en?.summary || `Report: ${file.name}`,
+          observations: obs,
+          status: 'EXTRACTED',
+          confidence_score: 1.0,
+          warnings: [],
+        };
+        setReport(finalReport);
+
+        // Auto-save to user history if logged in
+        if (token && user) {
+          fetch('/api/v1/history/save', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              original_file_name: file.name,
+              report_text: data.extracted.raw_text,
+              extracted_json: data.extracted,
+              explanation_json: data.explanation_en,
+              localized_amharic: currentLanguage === 'am' ? data.explanation_localized : undefined,
+              localized_oromo: currentLanguage === 'om' ? data.explanation_localized : undefined,
+              audio_amharic_url: currentLanguage === 'am' ? data.audio_url : undefined,
+              audio_oromo_url: currentLanguage === 'om' ? data.audio_url : undefined,
+            }),
+          }).catch((err) => console.warn('Could not auto-save to history:', err));
+        }
+        return;
+      }
+    } catch (err: any) {
+      console.warn("Multipart upload fallback to text reader:", err.message);
+    } finally {
+      setIsLoading(false);
+    }
+
+    // Fallback: read text file directly
     const reader = new FileReader();
     reader.onload = async (e) => {
       const text = (e.target?.result as string) || `Uploaded medical report: ${file.name}`;

@@ -7,6 +7,7 @@ import adminRoutes from "./routes/admin.routes";
 import historyRoutes from "./routes/history.routes";
 import pipelineRoutes from "./routes/pipeline.routes";
 import speechRoutes from "./routes/speech.routes";
+import reportsRoutes from "./routes/reports.routes";
 import { config } from "./config";
 
 export const app = express();
@@ -32,6 +33,7 @@ app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/history", historyRoutes);
 app.use("/api/v1/pipeline", pipelineRoutes);
 app.use("/api/v1/speech", speechRoutes);
+app.use("/api/v1/reports", reportsRoutes);
 
 // Centralized error handler
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {

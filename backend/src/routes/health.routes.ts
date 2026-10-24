@@ -12,11 +12,17 @@ router.get("/", (req, res) => {
   });
 });
 
-router.get("/health", (req, res) => {
-  res.json({ status: "healthy", timestamp: new Date().toISOString() });
+router.get(["/health", "/api/v1/health"], (req, res) => {
+  res.json({
+    status: "healthy",
+    version: "1.0.0",
+    environment: "production",
+    database: db.isPostgres() ? "connected" : "fallback",
+    timestamp: new Date().toISOString(),
+  });
 });
 
-router.get("/health/ready", (req, res) => {
+router.get(["/health/ready", "/api/v1/health/ready"], (req, res) => {
   res.json({
     status: "ready",
     database: db.isPostgres() ? "postgresql" : "local_storage",

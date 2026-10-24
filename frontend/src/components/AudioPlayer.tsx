@@ -18,12 +18,45 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ language, explanationT
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const t = translations[language];
 
+  // Web Speech API Vocalizer
+  const speakText = useCallback((textToSpeak: string, playbackSpeed: number) => {
+    try {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+        if (typeof window.SpeechSynthesisUtterance !== 'undefined') {
+          const utterance = new window.SpeechSynthesisUtterance(textToSpeak);
+          utterance.rate = playbackSpeed;
+          if (language === 'am') {
+            utterance.lang = 'am-ET';
+          } else if (language === 'om') {
+            utterance.lang = 'om-ET';
+          } else {
+            utterance.lang = 'en-US';
+          }
+
+          utterance.onstart = () => setIsPlaying(true);
+          utterance.onend = () => setIsPlaying(false);
+          utterance.onerror = () => {};
+
+          window.speechSynthesis.speak(utterance);
+        }
+      }
+    } catch {
+      // Gracefully continue with HTML5 audio
+    }
+  }, [language]);
+
   // Reset audio when language or text changes
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current = null;
     }
+    try {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    } catch {}
     setIsPlaying(false);
     setAudioUrl(null);
     setCurrentTime(0);
@@ -66,17 +99,27 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ language, explanationT
       if (audioRef.current) {
         audioRef.current.pause();
       }
+      try {
+        if (typeof window !== 'undefined' && 'speechSynthesis' in window && window.speechSynthesis) {
+          window.speechSynthesis.cancel();
+        }
+      } catch {}
       setIsPlaying(false);
       return;
     }
+
+    const textToSpeak = explanationText || t.audioSubtitleReady;
+
+    // Trigger audible spoken voice
+    speakText(textToSpeak, speed);
 
     const url = await loadAudio();
     if (!url) return;
 
     if (url === 'simulated') {
-      // Offline fallback: toggle simulated playback state
+      // Offline fallback: toggle simulated playback state with voice
       setIsPlaying(true);
-      setDuration(4.0);
+      setDuration(6.0);
       return;
     }
 
@@ -120,6 +163,8 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ language, explanationT
   };
 
   const handleReplay = () => {
+    const textToSpeak = explanationText || t.audioSubtitleReady;
+    speakText(textToSpeak, speed);
     if (audioRef.current) {
       audioRef.current.currentTime = 0;
       try {
@@ -141,6 +186,9 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ language, explanationT
     setSpeed(nextSpeed);
     if (audioRef.current) {
       audioRef.current.playbackRate = nextSpeed;
+    }
+    if (isPlaying) {
+      speakText(explanationText || t.audioSubtitleReady, nextSpeed);
     }
   };
 

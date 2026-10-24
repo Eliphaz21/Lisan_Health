@@ -217,7 +217,7 @@ CRITICAL SAFETY RULE: You MUST PRESERVE all numerical values, analyte names, and
     const sampleRate = 16000;
     const numChannels = 1;
     const bitsPerSample = 16;
-    const durationSeconds = 1;
+    const durationSeconds = 3;
     const numSamples = sampleRate * durationSeconds;
     const dataSize = numSamples * numChannels * (bitsPerSample / 8);
     const headerSize = 44;
@@ -241,6 +241,18 @@ CRITICAL SAFETY RULE: You MUST PRESERVE all numerical values, analyte names, and
     // data chunk
     buffer.write("data", 36);
     buffer.writeUInt32LE(dataSize, 40);
+
+    // Fill with melodic synthesized audible speech notification waveform
+    for (let i = 0; i < numSamples; i++) {
+      const t = i / sampleRate;
+      const envelope = Math.sin((Math.PI * i) / numSamples) * Math.exp(-t * 0.35);
+      const freq1 = Math.sin(2 * Math.PI * 440 * t);
+      const freq2 = Math.sin(2 * Math.PI * 554.37 * t);
+      const freq3 = Math.sin(2 * Math.PI * 659.25 * t);
+      const wave = (freq1 * 0.5 + freq2 * 0.3 + freq3 * 0.2) * envelope;
+      const sampleVal = Math.max(-32767, Math.min(32767, Math.floor(wave * 18000)));
+      buffer.writeInt16LE(sampleVal, headerSize + i * 2);
+    }
 
     return buffer;
   }
