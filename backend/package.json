@@ -10,6 +10,7 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "test": "tsx src/verify_backend.ts",
+    "test:api": "tsx src/api.integration.ts",
     "db": "tsx src/db-cli.ts",
     "db:users": "tsx src/db-cli.ts users",
     "db:reports": "tsx src/db-cli.ts reports",

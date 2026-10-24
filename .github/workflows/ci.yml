@@ -38,6 +38,9 @@ jobs:
       - name: Run backend verification suite
         working-directory: backend
         run: npm test
+      - name: Run isolated API integration suite
+        working-directory: backend
+        run: npm run test:api
 
   frontend-qa:
     name: Frontend Vitest & TypeScript Build

@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 import { config } from "../config";
 import { UserRecord, SavedReport } from "../types";
+import crypto from "crypto";
 
 // Setup PostgreSQL pool with connection timeout
 export const pool = new Pool({
@@ -30,6 +31,7 @@ const memoryStore = {
   reports: new Map<string, SavedReport>(),
   configs: new Map<string, string>(),
   auditLogs: [] as AuditLogRecord[],
+  refreshTokens: new Map<string, { userId: string; expiresAt: number }>(),
 };
 
 let isConnectedToPostgres = false;
@@ -81,6 +83,15 @@ export async function initDb(): Promise<void> {
         ip_address VARCHAR(64),
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
+
+      CREATE TABLE IF NOT EXISTS refresh_tokens (
+        token_hash VARCHAR(64) PRIMARY KEY,
+        user_id VARCHAR(64) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+        revoked_at TIMESTAMP WITH TIME ZONE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS refresh_tokens_user_idx ON refresh_tokens(user_id);
     `);
 
     client.release();
@@ -99,6 +110,41 @@ export async function initDb(): Promise<void> {
 // Data Access Repository with Dual Backend Support (PostgreSQL / In-Memory Fallback)
 export const db = {
   isPostgres: () => isConnectedToPostgres,
+
+  async storeRefreshToken(token: string, userId: string, expiresAt: Date): Promise<void> {
+    const hash = crypto.createHash("sha256").update(token).digest("hex");
+    if (isConnectedToPostgres) {
+      await pool.query("INSERT INTO refresh_tokens (token_hash, user_id, expires_at) VALUES ($1, $2, $3)", [hash, userId, expiresAt]);
+      return;
+    }
+    memoryStore.refreshTokens.set(hash, { userId, expiresAt: expiresAt.getTime() });
+  },
+
+  async rotateRefreshToken(token: string): Promise<string | null> {
+    const hash = crypto.createHash("sha256").update(token).digest("hex");
+    if (isConnectedToPostgres) {
+      const client = await pool.connect();
+      try {
+        await client.query("BEGIN");
+        const result = await client.query("SELECT user_id, expires_at FROM refresh_tokens WHERE token_hash = $1 AND revoked_at IS NULL FOR UPDATE", [hash]);
+        const row = result.rows[0];
+        if (!row || new Date(row.expires_at).getTime() <= Date.now()) { await client.query("ROLLBACK"); return null; }
+        await client.query("UPDATE refresh_tokens SET revoked_at = NOW() WHERE token_hash = $1", [hash]);
+        await client.query("COMMIT");
+        return row.user_id;
+      } catch (err) { await client.query("ROLLBACK"); throw err; } finally { client.release(); }
+    }
+    const record = memoryStore.refreshTokens.get(hash);
+    if (!record || record.expiresAt <= Date.now()) return null;
+    memoryStore.refreshTokens.delete(hash);
+    return record.userId;
+  },
+
+  async revokeRefreshToken(token: string): Promise<void> {
+    const hash = crypto.createHash("sha256").update(token).digest("hex");
+    if (isConnectedToPostgres) { await pool.query("UPDATE refresh_tokens SET revoked_at = NOW() WHERE token_hash = $1", [hash]); return; }
+    memoryStore.refreshTokens.delete(hash);
+  },
 
   async findUserByEmail(email: string): Promise<UserRecord | null> {
     const cleanEmail = email.toLowerCase().trim();

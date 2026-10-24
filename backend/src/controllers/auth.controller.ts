@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import { config } from "../config";
 import { db } from "../db";
 import { RegisterSchema, LoginSchema } from "../schemas/auth.schema";
@@ -8,6 +9,22 @@ import { AuthenticatedRequest } from "../middleware/auth.middleware";
 
 // Constant-time dummy hash to mitigate user enumeration timing attacks
 const DUMMY_HASH = "$2a$12$e8kM.V64hZ5pC/J.D6j4vOe4Vw/bOa7vD5fNl.2S.G6eF.7A8cIee";
+
+function readRefreshToken(req: Request): string | undefined {
+  const cookie = req.headers.cookie?.split(";").map((part) => part.trim()).find((part) => part.startsWith("lisan_refresh="));
+  return cookie ? decodeURIComponent(cookie.slice("lisan_refresh=".length)) : undefined;
+}
+
+async function issueTokens(user: { id: string; role: string }): Promise<{ accessToken: string; refreshToken: string }> {
+  const accessToken = jwt.sign({ sub: user.id, role: user.role }, config.jwtSecret, { expiresIn: config.jwtExpiresIn as any, algorithm: "HS256" });
+  const refreshToken = crypto.randomBytes(48).toString("base64url");
+  await db.storeRefreshToken(refreshToken, user.id, new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
+  return { accessToken, refreshToken };
+}
+
+function setRefreshCookie(res: Response, token: string): void {
+  res.setHeader("Set-Cookie", `lisan_refresh=${encodeURIComponent(token)}; HttpOnly; SameSite=Strict; Path=/api/v1/auth; Max-Age=604800${config.env === "production" ? "; Secure" : ""}`);
+}
 
 export const authController = {
   async register(req: Request, res: Response): Promise<void> {
@@ -42,12 +59,11 @@ export const authController = {
     });
     console.log(`[Auth] Registered new account (${role}): ${cleanEmail}`);
 
-    const token = jwt.sign({ sub: user.id, role: user.role }, config.jwtSecret, {
-      expiresIn: config.jwtExpiresIn as any,
-    });
+    const { accessToken, refreshToken } = await issueTokens(user);
+    setRefreshCookie(res, refreshToken);
 
     res.status(201).json({
-      access_token: token,
+      access_token: accessToken,
       token_type: "bearer",
       user: {
         id: user.id,
@@ -96,12 +112,11 @@ export const authController = {
       user.role = "ADMIN";
     }
 
-    const token = jwt.sign({ sub: user.id, role: user.role }, config.jwtSecret, {
-      expiresIn: config.jwtExpiresIn as any,
-    });
+    const { accessToken, refreshToken } = await issueTokens(user);
+    setRefreshCookie(res, refreshToken);
 
     res.json({
-      access_token: token,
+      access_token: accessToken,
       token_type: "bearer",
       user: {
         id: user.id,
@@ -112,6 +127,25 @@ export const authController = {
         created_at: user.created_at,
       },
     });
+  },
+
+  async refresh(req: Request, res: Response): Promise<void> {
+    const token = readRefreshToken(req) || (typeof req.body?.refresh_token === "string" ? req.body.refresh_token : undefined);
+    if (!token) { res.status(401).json({ detail: "Refresh token required." }); return; }
+    const userId = await db.rotateRefreshToken(token);
+    if (!userId) { res.status(401).json({ detail: "Invalid, expired, or already-used refresh token." }); return; }
+    const user = await db.findUserById(userId);
+    if (!user || !user.is_active) { res.status(401).json({ detail: "User account is unavailable." }); return; }
+    const tokens = await issueTokens(user);
+    setRefreshCookie(res, tokens.refreshToken);
+    res.json({ access_token: tokens.accessToken, token_type: "bearer" });
+  },
+
+  async logout(req: Request, res: Response): Promise<void> {
+    const token = readRefreshToken(req) || (typeof req.body?.refresh_token === "string" ? req.body.refresh_token : undefined);
+    if (token) await db.revokeRefreshToken(token);
+    res.setHeader("Set-Cookie", "lisan_refresh=; HttpOnly; SameSite=Strict; Path=/api/v1/auth; Max-Age=0");
+    res.status(204).send();
   },
 
   async me(req: AuthenticatedRequest, res: Response): Promise<void> {
