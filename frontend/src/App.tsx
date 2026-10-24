@@ -1,20 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { lazy, Suspense, useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
-import { AdminModal } from './components/AdminModal';
-import { HistoryModal } from './components/HistoryModal';
 import { HomePage } from './pages/HomePage';
-import { LoginPage } from './pages/LoginPage';
-import { RegisterPage } from './pages/RegisterPage';
-import { AdminPage } from './pages/AdminPage';
-import { HistoryPage } from './pages/HistoryPage';
-import type { ExtractedLabReport, HealthStatus, SupportedLanguage, LabObservation } from './types/report';
+import type { ExtractedLabReport, SupportedLanguage, LabObservation } from './types/report';
 import type { User } from './types/auth';
 import { Footer } from './components/Footer';
 
+const LoginPage = lazy(() => import('./pages/LoginPage').then(({ LoginPage }) => ({ default: LoginPage })));
+const RegisterPage = lazy(() => import('./pages/RegisterPage').then(({ RegisterPage }) => ({ default: RegisterPage })));
+const AdminPage = lazy(() => import('./pages/AdminPage').then(({ AdminPage }) => ({ default: AdminPage })));
+const HistoryPage = lazy(() => import('./pages/HistoryPage').then(({ HistoryPage }) => ({ default: HistoryPage })));
+
 export const App: React.FC = () => {
   const [currentLanguage, setCurrentLanguage] = useState<SupportedLanguage>('am');
-  const [health, setHealth] = useState<HealthStatus | null>(null);
   const [report, setReport] = useState<ExtractedLabReport | null>(null);
   const [explanationData, setExplanationData] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -24,8 +22,6 @@ export const App: React.FC = () => {
   // Authentication & Modals State
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string>('');
-  const [isAdminOpen, setIsAdminOpen] = useState(false);
-  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   const handleClearReport = () => {
     setReport(null);
@@ -47,16 +43,6 @@ export const App: React.FC = () => {
         localStorage.removeItem('lisan_user');
       }
     }
-
-    // Health check
-    fetch('/api/v1/health')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data: HealthStatus | null) => {
-        if (data) {
-          setHealth(data);
-        }
-      })
-      .catch(() => setHealth({ status: 'offline', version: '1.0.0', environment: 'local', timestamp: new Date().toISOString() }));
   }, []);
 
   const handleLogout = () => {
@@ -282,17 +268,14 @@ export const App: React.FC = () => {
   return (
     <BrowserRouter>
       <div className="app">
+        <Suspense fallback={<main className="container" aria-busy="true">Loading…</main>}>
         <Routes>
           <Route
             path="/"
             element={
               <>
                 <Navbar
-                  health={health}
-                  language={currentLanguage}
                   user={user}
-                  onOpenAdmin={() => setIsAdminOpen(true)}
-                  onOpenHistory={() => setIsHistoryOpen(true)}
                   onLogout={handleLogout}
                 />
                 <HomePage
@@ -350,20 +333,7 @@ export const App: React.FC = () => {
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-
-        {/* Admin and History Modals */}
-        <AdminModal
-          isOpen={isAdminOpen}
-          onClose={() => setIsAdminOpen(false)}
-          token={token}
-        />
-
-        <HistoryModal
-          isOpen={isHistoryOpen}
-          onClose={() => setIsHistoryOpen(false)}
-          token={token}
-          onSelectReport={handleLoadReport}
-        />
+        </Suspense>
         <Footer language={currentLanguage} />
       </div>
     </BrowserRouter>

@@ -1,23 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import type { HealthStatus, SupportedLanguage } from '../types/report';
 import type { User } from '../types/auth';
 
 interface NavbarProps {
-  health?: HealthStatus | null;
-  language?: SupportedLanguage;
   user: User | null;
-  onOpenAdmin?: () => void;
-  onOpenHistory?: () => void;
   onLogout: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
-  health: _health,
-  language: _language,
   user,
-  onOpenAdmin: _onOpenAdmin,
-  onOpenHistory: _onOpenHistory,
   onLogout,
 }) => {
   return (
