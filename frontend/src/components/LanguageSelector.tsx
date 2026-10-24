@@ -13,24 +13,15 @@ const languages: { code: SupportedLanguage; label: string; native: string }[] = 
   { code: 'ti', label: 'Tigrinya', native: 'ትግርኛ' },
 ];
 
-export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
-  currentLanguage,
-  onLanguageChange,
-}) => {
-  return (
-    <div className="lang-selector" role="radiogroup" aria-label="Select report explanation language">
-      {languages.map((lang) => (
-        <button
-          key={lang.code}
-          type="button"
-          role="radio"
-          aria-checked={currentLanguage === lang.code}
-          className={`lang-btn ${currentLanguage === lang.code ? 'active' : ''}`}
-          onClick={() => onLanguageChange(lang.code)}
-        >
-          {lang.native}
-        </button>
-      ))}
-    </div>
-  );
-};
+export const LanguageSelector: React.FC<LanguageSelectorProps> = ({ currentLanguage, onLanguageChange }) => (
+  <div className="lang-selector" role="radiogroup" aria-label="Select report explanation language">
+    {languages.map((lang) => (
+      <button key={lang.code} type="button" role="radio" title={lang.label}
+        aria-checked={currentLanguage === lang.code}
+        className={`lang-btn ${currentLanguage === lang.code ? 'active' : ''}`}
+        onClick={() => onLanguageChange(lang.code)}>
+        {lang.native}
+      </button>
+    ))}
+  </div>
+);

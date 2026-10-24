@@ -70,7 +70,17 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-.site-footer { border-top: 1px solid var(--color-border); padding: 1.5rem 0; color: var(--color-text-muted); font-size: .8rem; }
+#root,
+.app {
+  min-height: 100vh;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+}
+
+.site-footer { margin-top: auto; border-top: 1px solid var(--color-border); padding: 1.5rem 0; color: var(--color-text-muted); font-size: .8rem; }
 .site-footer .container { display: grid; gap: .55rem; }
 .site-footer p { margin: 0; line-height: 1.6; }
 .site-footer__primary { display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 1.5rem; }
@@ -83,6 +93,7 @@ body {
 
 /* Container */
 .container {
+  width: 100%;
   max-width: 1120px;
   margin: 0 auto;
   padding: 0 1.5rem;
@@ -163,6 +174,7 @@ body {
 
 /* Language Selector: Graphite Capsule with Sky Mint Highlight */
 .lang-selector {
+  width: min(100%, 420px);
   display: flex;
   background: var(--color-graphite);
   border: 1px solid var(--color-graphite-light);
@@ -173,11 +185,14 @@ body {
 }
 
 .lang-btn {
+  flex: 1 1 0;
+  min-width: 0;
   border: none;
   background: transparent;
   padding: 0.35rem 0.95rem;
   font-size: 0.85rem;
   font-weight: 600;
+  white-space: nowrap;
   border-radius: var(--radius-full);
   cursor: pointer;
   color: rgba(255, 255, 255, 0.75);
@@ -236,6 +251,7 @@ body {
 
 /* Cards & Layout */
 .card {
+  width: 100%;
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -273,6 +289,13 @@ body {
 
 /* Dropzone: Clean Surface with Sky Mint Hover Accent */
 .upload-zone {
+  height: 240px;
+  min-height: 240px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   border: 2px dashed #D1D5DB;
   background: #FAFBFC;
   border-radius: var(--radius-lg);
