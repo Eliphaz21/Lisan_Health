@@ -35,7 +35,7 @@ graph TD
         LangSelector[Language Selector: EN / AM / OM]
     end
 
-    subgraph BackendAPI [Backend: FastAPI Python 3.12]
+    subgraph BackendAPI [Backend: TypeScript Express]
         Router[API Gateway / Router]
         ExtractorService[Deterministic Extraction / OCR Engine]
         ValidationLayer[Deterministic Schema & Unit Preservation Engine]
@@ -71,7 +71,7 @@ The sequential pipeline isolates clinical reasoning from linguistic localization
 sequenceDiagram
     autonumber
     participant Client as Web Client
-    participant API as FastAPI Backend
+    participant API as TypeScript Express Backend
     participant Extract as Extraction Engine
     participant Filter as Validation Filter
     participant ProvA as Provider A (Reasoning)

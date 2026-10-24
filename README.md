@@ -5,7 +5,6 @@
 
 [![CI Pipeline](https://github.com/Eliphaz21/Lisan_Health/actions/workflows/ci.yml/badge.svg)](https://github.com/Eliphaz21/Lisan_Health/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/)
 [![Node 24](https://img.shields.io/badge/node-v24-green.svg)](https://nodejs.org/)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
 
@@ -32,7 +31,7 @@ In Ethiopia, medical laboratory reports are predominantly printed in English, us
 ```mermaid
 flowchart TD
     User([User / Patient]) -->|Upload PDF or Image| WebUI[Frontend: React + Vite]
-    WebUI -->|Secure Upload| API[Backend: FastAPI Service]
+    WebUI -->|Secure Upload| API[Backend: TypeScript Express Service]
     
     subgraph Pipeline [Deterministic & AI Processing Pipeline]
         API -->|Stage A| Extract[Deterministic Extraction & OCR]
@@ -54,20 +53,18 @@ flowchart TD
 | Feature | Status | Description |
 | :--- | :--- | :--- |
 | **Project Setup & Documentation** | **Implemented** | Full PRD, SRS, Architecture, Testing, Security, and ADR documentation. |
-| **FastAPI Core & Health Check** | **In Progress** | Modular FastAPI backend with `/api/v1/health` and OpenAPI docs. |
-| **Synthetic Report Pipeline** | **Planned** | Extraction of CBC, Lipid, Metabolic panels from synthetic PDF/images. |
-| **Dual-AI Provider Integration** | **Planned** | Provider A (reasoning) + Provider B (Addis AI Ethiopian localization). |
-| **Addis AI Speech (TTS)** | **Planned** | Amharic and Afaan Oromoo audio explanation synthesis. |
-| **React + TypeScript Web UI** | **Planned** | Accessible dashboard with multi-language toggle and audio player. |
-| **Docker & Compose Environment** | **Planned** | Multi-stage containerization with health checks. |
-| **Kubernetes (kind) & Helm** | **Planned** | Local deployment manifests for DevOps Phase 2. |
+| **TypeScript Express API** | **Implemented** | Authenticated, rate-limited API with health checks, report history, uploads, and speech routes. |
+| **Synthetic Report Pipeline** | **Implemented** | Deterministic extraction and safety validation for synthetic PDF/image/text workflows. |
+| **Dual-AI Provider Integration** | **Implemented** | Clinical reasoning plus Addis AI localization and Tigrinya language support. |
+| **React + TypeScript Web UI** | **Implemented** | Accessible dashboard with four-language selection and audio player. |
+| **Docker & Compose Environment** | **Implemented** | Multi-stage images and PostgreSQL Compose service with health checks. |
+| **Kubernetes & Helm** | **Implemented** | Deployment manifests, security controls, health probes, and resource policies. |
 
 ---
 
 ## 4. Prerequisites
 
 - **OS:** Windows 10/11 with PowerShell
-- **Python:** 3.12+
 - **Node.js:** v20+ (v24 recommended)
 - **Docker Desktop:** Version 25+
 - **Git:** Version 2.40+
@@ -76,7 +73,7 @@ flowchart TD
 
 ## 5. Local Development Setup (Windows PowerShell)
 
-### Backend Setup
+### Backend Setup (TypeScript)
 ```powershell
 # 1. Clone repository
 git clone https://github.com/Eliphaz21/Lisan_Health.git
@@ -85,18 +82,17 @@ cd Lisan_Health
 # 2. Configure environment
 Copy-Item .env.example .env
 
-# 3. Create and activate Python virtual environment
-python -m venv venv
-.\venv\Scripts\Activate.ps1
+# 3. Install backend dependencies
+Set-Location backend
+npm install
 
-# 4. Install backend dependencies
-pip install -r backend/requirements.txt
+# 4. Build and test the backend
+npm run build
+npm test
+npm run test:api
 
-# 5. Run tests
-pytest backend/tests -v
-
-# 6. Start backend development server
-uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8000
+# 5. Start the backend development server
+npm run dev
 ```
 
 ### Frontend Setup

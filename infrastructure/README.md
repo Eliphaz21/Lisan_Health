@@ -16,7 +16,7 @@ graph TD
     subgraph KubernetesCluster [Production Kubernetes Cluster]
         subgraph Namespaces [Namespace: lisan-health]
             FrontendDeploy[lisan-frontend Deployment (Nginx SPA)]
-            BackendDeploy[lisan-backend Deployment (FastAPI)]
+            BackendDeploy[lisan-backend Deployment (TypeScript Express)]
             ConfigMap[(lisan-config ConfigMap)]
             HPA[HorizontalPodAutoscalers]
         end

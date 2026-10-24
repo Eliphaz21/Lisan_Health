@@ -3,7 +3,7 @@
 ## 1. Project Overview & Role
 You are pair-programming on **LisanHealth** ("Your Health Report, in Your Language"), an Ethiopian-focused multilingual medical-report explainer built as a dual-stack software product and an 11-week DevOps portfolio project.
 
-- **Stack:** Python 3.12 (FastAPI, Pydantic, Pytest), React (TypeScript, Vite, Vanilla CSS), Docker, Kind, Helm, GitHub Actions.
+- **Stack:** TypeScript (Express, Zod, PostgreSQL), React (TypeScript, Vite, Vanilla CSS), Docker, Kind, Helm, GitHub Actions.
 - **Dual-AI Architecture:**
   1. **Provider A:** English reasoning and evidence-grounded clinical explanation.
   2. **Provider B (Addis AI):** Ethiopian localization (English, Amharic, Afaan Oromoo) and speech (TTS).

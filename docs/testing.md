@@ -11,7 +11,7 @@
 graph TD
     subgraph Pyramid [Testing Strategy]
         E2E[End-to-End & Smoke Tests: Browser to Audio Playback]
-        API[API Contract & Integration Tests: FastAPI Endpoints]
+        API[API Contract & Integration Tests: TypeScript Endpoints]
         Unit[Unit Tests: Deterministic Extraction, Unit Validation, Schema Integrity]
     end
 ```
@@ -29,13 +29,13 @@ graph TD
 ### Backend Tests (Pytest)
 ```powershell
 # Run all unit and integration tests
-pytest backend/tests -v
+npm --prefix backend test
 
 # Run with test coverage report
-pytest backend/tests --cov=backend/app --cov-report=term-missing
+npm --prefix backend run test:api
 
 # Run focused unit tests for extraction validation
-pytest backend/tests/test_extraction.py -k "test_unit_preservation"
+npm --prefix backend run build
 ```
 
 ### Frontend Tests (Vitest)

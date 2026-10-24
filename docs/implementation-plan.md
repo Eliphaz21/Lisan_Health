@@ -17,7 +17,7 @@ gantt
     
     section Day 1: Foundation & Extraction
     Repo Init & Docs Suite        :done, d1_1, 00:00, 2h
-    FastAPI Health & Core API     :active, d1_2, after d1_1, 3h
+    TypeScript Express Health & Core API     :active, d1_2, after d1_1, 3h
     Synthetic Schemas & Parsing   :d1_3, after d1_2, 3h
     Frontend Skeleton & UI Tokens :d1_4, after d1_3, 3h
     Dockerization & Compose Check :d1_5, after d1_4, 2h
@@ -32,7 +32,7 @@ gantt
 
 ### Day 1 Deliverables
 - **TASK-01:** Repository initialization, documentation suite, and environment templates. *(Completed)*
-- **TASK-02:** FastAPI service with structured health checks (`/api/v1/health`), versioning, and test suites.
+- **TASK-02:** TypeScript Express service with structured health checks (`/api/v1/health`), versioning, and test suites.
 - **TASK-03:** Synthetic laboratory report parser with Pydantic validation (CBC, Lipid, Metabolic panels) and unit preservation tests.
 - **TASK-04:** React + Vite + TypeScript frontend with language selection, upload preview, and observation display.
 - **TASK-05:** Multi-stage `Dockerfile` and `docker-compose.yml` with health check verification.
