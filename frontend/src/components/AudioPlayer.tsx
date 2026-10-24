@@ -19,68 +19,6 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ language, explanationT
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const t = translations[language];
 
-  // Check available voices for matching locale
-  const getMatchingVoice = useCallback((lang: SupportedLanguage) => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return null;
-    const voices = window.speechSynthesis.getVoices();
-    if (!voices || voices.length === 0) return null;
-
-    if (lang === 'am') {
-      return voices.find((v) => v.lang.toLowerCase().startsWith('am') || v.name.toLowerCase().includes('amharic')) || null;
-    }
-    if (lang === 'om') {
-      return voices.find((v) => v.lang.toLowerCase().startsWith('om') || v.name.toLowerCase().includes('oromo')) || null;
-    }
-    return voices.find((v) => v.lang.toLowerCase().startsWith('en')) || null;
-  }, []);
-
-  // Web Speech API Vocalizer
-  const speakText = useCallback((textToSpeak: string, playbackSpeed: number) => {
-    try {
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window && window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-        if (typeof window.SpeechSynthesisUtterance !== 'undefined') {
-          const matchingVoice = getMatchingVoice(language);
-          const isEthiopianLang = language === 'am' || language === 'om';
-
-          // If Amharic/Oromo selected but OS has no native voice installed,
-          // do NOT force an English voice to read Geez characters as garbled nonsense.
-          if (isEthiopianLang && !matchingVoice) {
-            const estDuration = Math.max(6, Math.ceil(textToSpeak.length / 14));
-            setDuration(estDuration);
-            setIsPlaying(true);
-            return;
-          }
-
-          const utterance = new window.SpeechSynthesisUtterance(textToSpeak);
-          utterance.rate = playbackSpeed;
-          if (matchingVoice) {
-            utterance.voice = matchingVoice;
-            utterance.lang = matchingVoice.lang;
-          } else {
-            utterance.lang = language === 'am' ? 'am-ET' : language === 'om' ? 'om-ET' : 'en-US';
-          }
-
-          const estDuration = Math.max(4, Math.ceil(textToSpeak.length / (12 * playbackSpeed)));
-          setDuration(estDuration);
-
-          utterance.onstart = () => setIsPlaying(true);
-          utterance.onend = () => {
-            setIsPlaying(false);
-            setCurrentTime(0);
-          };
-          utterance.onerror = () => {
-            setIsPlaying(false);
-          };
-
-          window.speechSynthesis.speak(utterance);
-        }
-      }
-    } catch {
-      // Gracefully continue with HTML5 audio
-    }
-  }, [language, getMatchingVoice]);
-
   // Smooth playback progress tracker
   useEffect(() => {
     if (!isPlaying) return;
@@ -107,6 +45,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ language, explanationT
       }
     } catch {}
     setIsPlaying(false);
+    if (audioUrl?.startsWith('blob:')) URL.revokeObjectURL(audioUrl);
     setAudioUrl(null);
     setCurrentTime(0);
     setDuration(0);
@@ -118,9 +57,11 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ language, explanationT
     setIsLoading(true);
 
     try {
+      const token = localStorage.getItem('lisan_token');
+      if (!token) throw new Error('Please sign in again to generate speech.');
       const response = await fetch('/api/v1/speech/synthesize', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           text: explanationText || t.audioSubtitleReady,
           language: language,
@@ -132,9 +73,16 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ language, explanationT
       }
 
       const data = await response.json();
-      const url = data.audio_url || null;
-      setAudioUrl(url);
-      return url;
+      const protectedUrl = data.audio_url || null;
+      if (!protectedUrl) throw new Error('The speech provider returned no audio URL.');
+      const audioResponse = await fetch(protectedUrl, { headers: { Authorization: `Bearer ${token}` } });
+      if (!audioResponse.ok) throw new Error(`Audio stream HTTP ${audioResponse.status}`);
+      const blob = await audioResponse.blob();
+      if (blob.size === 0) throw new Error('The generated audio file is empty.');
+      const objectUrl = URL.createObjectURL(blob);
+      setAudioUrl(objectUrl);
+      setSpeechError(null);
+      return objectUrl;
     } catch (error: any) {
       throw new Error(error?.message || 'Speech generation failed.');
     } finally {
@@ -155,11 +103,6 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ language, explanationT
       setIsPlaying(false);
       return;
     }
-
-    const textToSpeak = explanationText || t.audioSubtitleReady;
-
-    // Trigger audible spoken voice
-    speakText(textToSpeak, speed);
 
     let url: string | null;
     try {
@@ -214,8 +157,6 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ language, explanationT
   };
 
   const handleReplay = () => {
-    const textToSpeak = explanationText || t.audioSubtitleReady;
-    speakText(textToSpeak, speed);
     if (audioRef.current) {
       audioRef.current.currentTime = 0;
       try {
@@ -237,9 +178,6 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ language, explanationT
     setSpeed(nextSpeed);
     if (audioRef.current) {
       audioRef.current.playbackRate = nextSpeed;
-    }
-    if (isPlaying) {
-      speakText(explanationText || t.audioSubtitleReady, nextSpeed);
     }
   };
 

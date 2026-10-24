@@ -6,6 +6,12 @@ import { translations } from '../utils/i18n';
 describe('AudioPlayer Component', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    localStorage.setItem('lisan_token', 'test-access-token');
+    vi.stubGlobal('URL', {
+      ...URL,
+      createObjectURL: vi.fn(() => 'blob:test-audio'),
+      revokeObjectURL: vi.fn(),
+    });
   });
 
   it('renders audio player controls in Amharic', () => {
@@ -46,13 +52,18 @@ describe('AudioPlayer Component', () => {
   });
 
   it('toggles play/pause state when clicked', async () => {
-    globalThis.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        audio_id: 'test-audio-123',
-        audio_url: '/api/v1/speech/audio/test-audio-123',
-      }),
-    } as any);
+    globalThis.fetch = vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          audio_id: 'test-audio-123',
+          audio_url: '/api/v1/speech/stream/test-audio-123',
+        }),
+      } as any)
+      .mockResolvedValueOnce({
+        ok: true,
+        blob: async () => new Blob(['audio'], { type: 'audio/mpeg' }),
+      } as any);
 
     render(<AudioPlayer language="en" explanationText="Clinical report." />);
     const playBtn = screen.getByLabelText(translations.en.audioPlay);
