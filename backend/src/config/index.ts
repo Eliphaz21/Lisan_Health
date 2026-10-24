@@ -41,8 +41,8 @@ export const config = {
 
   // Google Gemini AI Provider (Vision OCR & Clinical Reasoning)
   geminiAi: {
-    apiKey: process.env.GEMINI_API_KEY || "",
-    model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+    apiKey: process.env.GEMINI_API_KEY || process.env.REASONING_API_KEY || "",
+    model: process.env.GEMINI_MODEL || (process.env.REASONING_MODEL && process.env.REASONING_MODEL !== "gemini-1.5-flash" ? process.env.REASONING_MODEL : "gemini-2.5-flash"),
     timeoutMs: 45000,
   },
 

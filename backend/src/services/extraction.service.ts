@@ -246,10 +246,10 @@ export async function extractReportWithGeminiVision(
   buffer: Buffer,
   mimetype: string
 ): Promise<ExtractedReport | null> {
-  const apiKey = config.geminiAi?.apiKey || process.env.GEMINI_API_KEY;
+  const apiKey = config.geminiAi?.apiKey || process.env.GEMINI_API_KEY || process.env.REASONING_API_KEY;
   if (!apiKey) return null;
 
-  const model = config.geminiAi?.model || "gemini-2.5-flash";
+  const model = config.geminiAi?.model || process.env.GEMINI_MODEL || process.env.REASONING_MODEL || "gemini-2.5-flash";
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
   const prompt = `You are a certified clinical laboratory report extraction expert for LisanHealth.

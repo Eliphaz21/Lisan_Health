@@ -163,7 +163,7 @@ export const adminController = {
       ai_providers: {
         provider_a: "Clinical Reasoning Engine (English)",
         provider_b: config.addisAi.apiKey ? "Addis AI Live Integration (Amharic & Afaan Oromoo)" : "Addis AI High-Fidelity Localizer",
-        gemini_active: Boolean(configs["GEMINI_AI_KEY"] || process.env.GEMINI_API_KEY),
+        gemini_active: Boolean(configs["GEMINI_AI_KEY"] || process.env.GEMINI_API_KEY || process.env.REASONING_API_KEY),
         tts_active: config.addisAi.ttsEnabled,
       },
     });
@@ -179,7 +179,7 @@ export const adminController = {
     const configs = await db.getAllSystemConfigs();
 
     const addisKey = configs["ADDIS_AI_KEY"] || config.addisAi.apiKey || "";
-    const geminiKey = configs["GEMINI_AI_KEY"] || process.env.GEMINI_API_KEY || "";
+    const geminiKey = configs["GEMINI_AI_KEY"] || process.env.GEMINI_API_KEY || process.env.REASONING_API_KEY || "";
 
     res.json({
       active_provider: configs["ACTIVE_AI_PROVIDER"] || "addis_ai",

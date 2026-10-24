@@ -37,6 +37,8 @@ async function bootstrap() {
     console.log(`[LisanHealth Backend] Server listening on http://localhost:${config.port}`);
     console.log(`[LisanHealth Backend] Admin email: ${config.adminEmail}`);
     console.log(`[LisanHealth Backend] Addis AI Key: ${config.addisAi.apiKey ? "Configured (Active)" : "Not Configured"}`);
+    console.log(`[LisanHealth Backend] Gemini AI Key: ${config.geminiAi.apiKey ? "Configured (Active)" : "Not Configured"}`);
+    console.log(`[LisanHealth Backend] Gemini Model: ${config.geminiAi.model}`);
   });
 }
 
