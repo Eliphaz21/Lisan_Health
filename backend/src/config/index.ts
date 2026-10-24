@@ -28,6 +28,7 @@ export const config = {
   maxJsonBytes: process.env.MAX_JSON_BYTES || "1mb",
   uploadMaxBytes: Number(process.env.MAX_UPLOAD_SIZE_BYTES || 10 * 1024 * 1024),
   authRateLimitMax: Number(process.env.AUTH_RATE_LIMIT_MAX || 10),
+  retentionHours: Number(process.env.RETENTION_HOURS || 24),
 
   // Database
   databaseUrl: resolveDatabaseUrl(process.env.DATABASE_URL),

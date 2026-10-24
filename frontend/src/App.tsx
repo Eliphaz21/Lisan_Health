@@ -71,13 +71,17 @@ export const App: React.FC = () => {
   };
 
   const handleProcessText = async (text: string, panelName: string, fileName?: string) => {
+    if (!token || !user) {
+      setError('Please sign in before processing a medical report.');
+      return;
+    }
     setIsLoading(true);
     setError(null);
 
     try {
       const response = await fetch('/api/v1/pipeline/process', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           text,
           target_language: currentLanguage === 'om' ? 'om' : 'am',
@@ -145,6 +149,10 @@ export const App: React.FC = () => {
   };
 
   const handleFileUpload = async (file: File) => {
+    if (!token || !user) {
+      setError('Please sign in before uploading a medical report.');
+      return;
+    }
     setIsLoading(true);
     setError(null);
 
@@ -156,6 +164,7 @@ export const App: React.FC = () => {
 
       const response = await fetch('/api/v1/pipeline/upload', {
         method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
 

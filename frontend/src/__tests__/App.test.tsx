@@ -5,6 +5,15 @@ import App from '../App';
 
 describe('App Component Integration Test', () => {
   beforeEach(() => {
+    localStorage.setItem('lisan_token', 'test-token');
+    localStorage.setItem('lisan_user', JSON.stringify({
+      id: 'test-user',
+      email: 'test@example.com',
+      full_name: 'Test User',
+      role: 'USER',
+      is_active: true,
+      created_at: '2026-10-22T00:00:00Z',
+    }));
     vi.stubGlobal(
       'fetch',
       vi.fn((input) => {

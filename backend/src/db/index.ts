@@ -87,7 +87,7 @@ export async function initDb(): Promise<void> {
     console.log("[Database] Connected successfully to AletCloud PostgreSQL 17.");
   } catch (err: any) {
     console.warn(
-      `[Database] Warning: Remote PostgreSQL connection failed (${err.message}). Using resilient persistent local fallback.`
+      `[Database] Warning: PostgreSQL connection failed (${err.message}). Development memory storage is active; this is not persistent.`
     );
     isConnectedToPostgres = false;
     if (config.env === "production") {
