@@ -14,7 +14,6 @@ interface HomePageProps {
   explanationData: any;
   isLoading: boolean;
   error: string | null;
-  onLoadSynthetic: (sampleType: 'cbc' | 'lipid' | 'malformed') => void;
   onFileUpload: (file: File) => void;
 }
 
@@ -25,7 +24,6 @@ export const HomePage: React.FC<HomePageProps> = ({
   explanationData,
   isLoading,
   error,
-  onLoadSynthetic,
   onFileUpload,
 }) => {
   const t = translations[currentLanguage];
@@ -50,7 +48,6 @@ export const HomePage: React.FC<HomePageProps> = ({
       )}
 
       <ReportUpload
-        onLoadSynthetic={onLoadSynthetic}
         onFileUpload={onFileUpload}
         isLoading={isLoading}
         language={currentLanguage}

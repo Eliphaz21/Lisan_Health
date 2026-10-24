@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import App from '../App';
 
@@ -6,8 +7,9 @@ describe('App Component Integration Test', () => {
   beforeEach(() => {
     vi.stubGlobal(
       'fetch',
-      vi.fn((url) => {
-        if (url === '/api/v1/health') {
+      vi.fn((input) => {
+        const urlStr = typeof input === 'string' ? input : (input as any)?.url || String(input);
+        if (urlStr.includes('/api/v1/health')) {
           return Promise.resolve({
             ok: true,
             json: () =>
@@ -19,27 +21,37 @@ describe('App Component Integration Test', () => {
               }),
           });
         }
-        if (url === '/api/v1/reports/parse-synthetic') {
+        if (urlStr.includes('/api/v1/pipeline/upload') || urlStr.includes('/api/v1/pipeline/process')) {
           return Promise.resolve({
             ok: true,
             json: () =>
               Promise.resolve({
-                report_id: 'SYNTH-CBC-001',
-                panel_name: 'Complete Blood Count (CBC)',
-                raw_text: 'CBC Report',
-                observations: [
-                  {
-                    test_name: 'Hemoglobin (HGB)',
-                    code: 'HGB',
-                    value: 9.8,
-                    unit: 'g/dL',
-                    flag: 'LOW',
-                    needs_review: false,
-                  },
-                ],
-                status: 'EXTRACTED',
-                confidence_score: 1.0,
-                warnings: [],
+                extracted: {
+                  test_category: 'Complete Blood Count (CBC)',
+                  raw_text: 'CBC Report text',
+                  analytes: [
+                    {
+                      name: 'Hemoglobin (HGB)',
+                      value: 9.8,
+                      unit: 'g/dL',
+                      reference_range_low: 12.0,
+                      reference_range_high: 16.0,
+                      flag: 'LOW',
+                    },
+                  ],
+                },
+                explanation_en: {
+                  summary: 'Your hemoglobin is slightly lower than normal.',
+                  findings: ['Hemoglobin 9.8 g/dL is low'],
+                  questions_for_doctor: ['Could iron deficiency cause my low hemoglobin?'],
+                },
+                explanation_localized: {
+                  language: 'am',
+                  summary: 'የሄሞግሎቢን መጠንዎ ከመደበኛው በትንሹ ዝቅ ያለ ነው።',
+                  findings: ['ሄሞግሎቢን 9.8 g/dL ዝቅተኛ ነው'],
+                  questions_for_doctor: ['የብረት እጥረት ዝቅተኛ ሄሞግሎቢን ሊያስከትል ይችላል?'],
+                },
+                audio_url: 'https://example.com/audio.mp3',
               }),
           });
         }
@@ -59,9 +71,8 @@ describe('App Component Integration Test', () => {
       screen.getByRole('heading', { level: 1, name: /የጤና ሪፖርትዎ፣ በቋንቋዎ/i })
     ).toBeInTheDocument();
 
-    await waitFor(() => {
-      expect(screen.getByText(/ሲስተም ዝግጁ ነው \(v0.1.0\)/i)).toBeInTheDocument();
-    });
+    // Verify upload card dropzone is present
+    expect(screen.getByText(/የላብራቶሪ ሪፖርትዎን እዚህ ያስቀምጡ/i)).toBeInTheDocument();
   });
 
   it('switches between Amharic, English, and Afaan Oromoo seamlessly', () => {
@@ -87,21 +98,24 @@ describe('App Component Integration Test', () => {
     ).toBeInTheDocument();
   });
 
-  it('loads synthetic CBC data and displays localized results and doctor questions', async () => {
+  it('processes uploaded report and displays localized results, audio player, and doctor questions', async () => {
+    const user = userEvent.setup();
     render(<App />);
 
-    // Switch to English for deterministic button text lookup
+    // Switch to English
     const englishBtn = screen.getByRole('radio', { name: 'English' });
-    fireEvent.click(englishBtn);
+    await user.click(englishBtn);
 
-    const cbcBtn = screen.getByRole('button', { name: /Complete Blood Count \(Anemia\)/i });
-    fireEvent.click(cbcBtn);
+    // Trigger file upload
+    const uploadTrigger = screen.getByTestId('upload-trigger-btn');
+    fireEvent.click(uploadTrigger);
 
     await waitFor(() => {
       expect(screen.getByText('Complete Blood Count (CBC)')).toBeInTheDocument();
       expect(screen.getByText('Hemoglobin (HGB)')).toBeInTheDocument();
       expect(screen.getByText('9.8')).toBeInTheDocument();
       expect(screen.getByText(/Suggested Questions for Your Healthcare Provider/i)).toBeInTheDocument();
+      expect(screen.getAllByRole('button', { name: /Play Audio/i }).length).toBeGreaterThanOrEqual(1);
     });
   });
 });

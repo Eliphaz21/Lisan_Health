@@ -10,46 +10,6 @@ import { AdminPage } from './pages/AdminPage';
 import type { ExtractedLabReport, HealthStatus, SupportedLanguage, LabObservation } from './types/report';
 import type { User } from './types/auth';
 
-interface SamplePayload {
-  report_id: string;
-  panel_name: string;
-  raw_text: string;
-  observations: LabObservation[];
-}
-
-const SAMPLE_CBC: SamplePayload = {
-  report_id: "SYNTH-CBC-001",
-  panel_name: "Complete Blood Count (CBC)",
-  raw_text: "Hemoglobin: 11.2 g/dL\nWhite Blood Cells: 6.8 10^3/uL\nPlatelets: 210 10^3/uL",
-  observations: [
-    { test_name: "Hemoglobin (HGB)", code: "HGB", value: 11.2, unit: "g/dL", reference_interval: { low: 13.5, high: 17.5, unit: "g/dL" }, flag: "LOW", needs_review: false },
-    { test_name: "White Blood Cells (WBC)", code: "WBC", value: 6.8, unit: "10^3/uL", reference_interval: { low: 4.5, high: 11.0, unit: "10^3/uL" }, flag: "NORMAL", needs_review: false },
-    { test_name: "Platelets (PLT)", code: "PLT", value: 210.0, unit: "10^3/uL", reference_interval: { low: 150.0, high: 450.0, unit: "10^3/uL" }, flag: "NORMAL", needs_review: false },
-  ]
-};
-
-const SAMPLE_LIPID: SamplePayload = {
-  report_id: "SYNTH-LIPID-002",
-  panel_name: "Lipid Profile Panel",
-  raw_text: "Total Cholesterol: 245.0 mg/dL\nTriglycerides: 190.0 mg/dL\nHDL Cholesterol: 38.0 mg/dL\nLDL Cholesterol: 169.0 mg/dL",
-  observations: [
-    { test_name: "Total Cholesterol", code: "CHOL", value: 245.0, unit: "mg/dL", reference_interval: { high: 200.0, unit: "mg/dL" }, flag: "HIGH", needs_review: false },
-    { test_name: "Triglycerides", code: "TRIG", value: 190.0, unit: "mg/dL", reference_interval: { high: 150.0, unit: "mg/dL" }, flag: "HIGH", needs_review: false },
-    { test_name: "HDL Cholesterol", code: "HDL", value: 38.0, unit: "mg/dL", reference_interval: { low: 40.0, unit: "mg/dL" }, flag: "LOW", needs_review: false },
-    { test_name: "LDL Cholesterol", code: "LDL", value: 169.0, unit: "mg/dL", reference_interval: { high: 100.0, unit: "mg/dL" }, flag: "HIGH", needs_review: false },
-  ]
-};
-
-const SAMPLE_MALFORMED: SamplePayload = {
-  report_id: "SYNTH-MALFORMED-003",
-  panel_name: "Unclear Scanned Panel",
-  raw_text: "Malformed Scan",
-  observations: [
-    { test_name: "Glucose", code: "GLU", value: 142.0, unit: "", flag: "UNCERTAIN", needs_review: true, review_reason: "Missing unit" },
-    { test_name: "Creatinine", code: "CREAT", value: null, unit: "mg/dL", reference_interval: { low: 0.6, high: 1.2, unit: "mg/dL" }, flag: "UNCERTAIN", needs_review: true, review_reason: "Missing value" },
-  ]
-};
-
 export const App: React.FC = () => {
   const [currentLanguage, setCurrentLanguage] = useState<SupportedLanguage>('am');
   const [health, setHealth] = useState<HealthStatus | null>(null);
@@ -123,9 +83,9 @@ export const App: React.FC = () => {
       const data = await response.json();
       setExplanationData(data);
 
-      const obs: LabObservation[] = data.extracted.analytes.map((a: any) => ({
+      const obs: LabObservation[] = (data.extracted?.analytes || []).map((a: any) => ({
         test_name: a.name,
-        code: a.name.substring(0, 4).toUpperCase(),
+        code: (a.name || '').substring(0, 4).toUpperCase(),
         value: a.value,
         unit: a.unit,
         reference_interval: {
@@ -175,69 +135,6 @@ export const App: React.FC = () => {
     }
   };
 
-  const handleLoadSynthetic = async (sampleType: 'cbc' | 'lipid' | 'malformed') => {
-    setIsLoading(true);
-    setError(null);
-    let payload = SAMPLE_CBC;
-    if (sampleType === 'lipid') payload = SAMPLE_LIPID;
-    if (sampleType === 'malformed') payload = SAMPLE_MALFORMED;
-
-    try {
-      const response = await fetch('/api/v1/reports/parse-synthetic', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (response.ok) {
-        const extracted = await response.json();
-        setReport(extracted);
-      } else {
-        throw new Error('Status ' + response.status);
-      }
-    } catch {
-      setReport({
-        report_id: payload.report_id,
-        panel_name: payload.panel_name,
-        raw_text: payload.raw_text,
-        observations: payload.observations,
-        status: sampleType === 'malformed' ? 'NEEDS_REVIEW' : 'EXTRACTED',
-        confidence_score: sampleType === 'malformed' ? 0.75 : 1.0,
-        warnings: sampleType === 'malformed' ? ['Missing measurement units detected'] : [],
-      });
-    }
-
-    // Also run through pipeline so localized clinical explanation and native voice are generated
-    try {
-      const pipelineRes = await fetch('/api/v1/pipeline/process', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          text: payload.raw_text,
-          target_language: currentLanguage === 'om' ? 'om' : 'am',
-        }),
-      });
-      if (pipelineRes.ok) {
-        const data = await pipelineRes.json();
-        setExplanationData(data);
-      } else {
-        setExplanationData({
-          extracted: { test_category: payload.panel_name, analytes: payload.observations, raw_text: payload.raw_text },
-          explanation_localized: { summary: payload.raw_text, analytes: [] },
-          audio_url: '/api/v1/speech/stream/synthetic',
-        });
-      }
-    } catch {
-      setExplanationData({
-        extracted: { test_category: payload.panel_name, analytes: payload.observations, raw_text: payload.raw_text },
-        explanation_localized: { summary: payload.raw_text, analytes: [] },
-        audio_url: '/api/v1/speech/stream/synthetic',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleFileUpload = async (file: File) => {
     setIsLoading(true);
     setError(null);
@@ -257,7 +154,7 @@ export const App: React.FC = () => {
         const data = await response.json();
         setExplanationData(data);
 
-        const obs: LabObservation[] = data.extracted.analytes.map((a: any) => ({
+        const obs: LabObservation[] = (data.extracted?.analytes || []).map((a: any) => ({
           test_name: a.name,
           code: (a.name || '').substring(0, 4).toUpperCase(),
           value: a.value,
@@ -306,17 +203,26 @@ export const App: React.FC = () => {
       }
     } catch (err: any) {
       console.warn("Multipart upload fallback to text reader:", err.message);
+      // Fallback: read text file directly via file.text() or FileReader
+      try {
+        if (typeof file.text === 'function') {
+          const text = await file.text();
+          await handleProcessText(text, `Report (${file.name})`, file.name);
+          return;
+        }
+      } catch (readErr: any) {
+        console.warn("file.text() fallback error:", readErr.message);
+      }
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const text = (e.target?.result as string) || `Uploaded medical report: ${file.name}`;
+        await handleProcessText(text, `Report (${file.name})`, file.name);
+      };
+      reader.readAsText(file);
     } finally {
       setIsLoading(false);
     }
-
-    // Fallback: read text file directly
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const text = (e.target?.result as string) || `Uploaded medical report: ${file.name}`;
-      await handleProcessText(text, `Report (${file.name})`, file.name);
-    };
-    reader.readAsText(file);
   };
 
   return (
@@ -342,7 +248,6 @@ export const App: React.FC = () => {
                   explanationData={explanationData}
                   isLoading={isLoading}
                   error={error}
-                  onLoadSynthetic={handleLoadSynthetic}
                   onFileUpload={handleFileUpload}
                 />
               </>
