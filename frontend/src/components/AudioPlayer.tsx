@@ -18,20 +18,46 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ language, explanationT
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const t = translations[language];
 
+  // Check available voices for matching locale
+  const getMatchingVoice = useCallback((lang: SupportedLanguage) => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return null;
+    const voices = window.speechSynthesis.getVoices();
+    if (!voices || voices.length === 0) return null;
+
+    if (lang === 'am') {
+      return voices.find((v) => v.lang.toLowerCase().startsWith('am') || v.name.toLowerCase().includes('amharic')) || null;
+    }
+    if (lang === 'om') {
+      return voices.find((v) => v.lang.toLowerCase().startsWith('om') || v.name.toLowerCase().includes('oromo')) || null;
+    }
+    return voices.find((v) => v.lang.toLowerCase().startsWith('en')) || null;
+  }, []);
+
   // Web Speech API Vocalizer
   const speakText = useCallback((textToSpeak: string, playbackSpeed: number) => {
     try {
       if (typeof window !== 'undefined' && 'speechSynthesis' in window && window.speechSynthesis) {
         window.speechSynthesis.cancel();
         if (typeof window.SpeechSynthesisUtterance !== 'undefined') {
+          const matchingVoice = getMatchingVoice(language);
+          const isEthiopianLang = language === 'am' || language === 'om';
+
+          // If Amharic/Oromo selected but OS has no native voice installed,
+          // do NOT force an English voice to read Geez characters as garbled nonsense.
+          if (isEthiopianLang && !matchingVoice) {
+            const estDuration = Math.max(6, Math.ceil(textToSpeak.length / 14));
+            setDuration(estDuration);
+            setIsPlaying(true);
+            return;
+          }
+
           const utterance = new window.SpeechSynthesisUtterance(textToSpeak);
           utterance.rate = playbackSpeed;
-          if (language === 'am') {
-            utterance.lang = 'am-ET';
-          } else if (language === 'om') {
-            utterance.lang = 'om-ET';
+          if (matchingVoice) {
+            utterance.voice = matchingVoice;
+            utterance.lang = matchingVoice.lang;
           } else {
-            utterance.lang = 'en-US';
+            utterance.lang = language === 'am' ? 'am-ET' : language === 'om' ? 'om-ET' : 'en-US';
           }
 
           const estDuration = Math.max(4, Math.ceil(textToSpeak.length / (12 * playbackSpeed)));
@@ -42,7 +68,9 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ language, explanationT
             setIsPlaying(false);
             setCurrentTime(0);
           };
-          utterance.onerror = () => {};
+          utterance.onerror = () => {
+            setIsPlaying(false);
+          };
 
           window.speechSynthesis.speak(utterance);
         }
@@ -50,7 +78,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ language, explanationT
     } catch {
       // Gracefully continue with HTML5 audio
     }
-  }, [language]);
+  }, [language, getMatchingVoice]);
 
   // Smooth playback progress tracker
   useEffect(() => {

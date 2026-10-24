@@ -35,6 +35,10 @@ export interface Translations {
   audioPlay: string;
   audioPause: string;
   reviewRequiredNotice: string;
+  clearResults: string;
+  selectedFile: string;
+  analyzing: string;
+  changeFile: string;
 }
 
 export const translations: Record<SupportedLanguage, Translations> = {
@@ -84,6 +88,10 @@ export const translations: Record<SupportedLanguage, Translations> = {
     audioPlay: "Play Audio",
     audioPause: "Pause Audio",
     reviewRequiredNotice: "Requires clinician verification",
+    clearResults: "Clear Dashboard",
+    selectedFile: "Uploaded Report",
+    analyzing: "Analyzing Report with Dual-AI...",
+    changeFile: "Upload Another File",
   },
   am: {
     appName: "ልሳን ጤና (LisanHealth)",
@@ -131,6 +139,10 @@ export const translations: Record<SupportedLanguage, Translations> = {
     audioPlay: "ድምጽ አጫውት",
     audioPause: "አቁም",
     reviewRequiredNotice: "የሐኪም ማረጋገጫ ያስፈልገዋል",
+    clearResults: "ውጤቱን አጽዳ",
+    selectedFile: "የተሰቀለው ሪፖርት",
+    analyzing: "በDual-AI በመተንተን ላይ...",
+    changeFile: "ሌላ ፋይል ምረጥ",
   },
   om: {
     appName: "LisanHealth (Fayyaa Lisan)",
@@ -178,5 +190,9 @@ export const translations: Record<SupportedLanguage, Translations> = {
     audioPlay: "Sagalee Taphaasi",
     audioPause: "Dhaabi",
     reviewRequiredNotice: "Mirkaneessa ogeessaa barbaada",
+    clearResults: "Bu'aa Haqi",
+    selectedFile: "Gabaasa Olkaawame",
+    analyzing: "Dual-AI'n xiinxalamaa jira...",
+    changeFile: "Faayilii Jijjiiri",
   },
 };

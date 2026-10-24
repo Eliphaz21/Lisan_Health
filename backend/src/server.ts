@@ -19,6 +19,16 @@ async function bootstrap() {
     if (dbUrl && dbUrl.trim()) {
       config.addisAi.baseUrl = dbUrl.trim();
     }
+    const dbGeminiKey = await db.getSystemConfig("GEMINI_AI_KEY");
+    if (dbGeminiKey && dbGeminiKey.trim()) {
+      config.geminiAi.apiKey = dbGeminiKey.trim();
+      process.env.GEMINI_API_KEY = dbGeminiKey.trim();
+    }
+    const dbGeminiModel = await db.getSystemConfig("GEMINI_MODEL");
+    if (dbGeminiModel && dbGeminiModel.trim()) {
+      config.geminiAi.model = dbGeminiModel.trim();
+      process.env.GEMINI_MODEL = dbGeminiModel.trim();
+    }
   } catch (err) {
     console.warn("[Config Sync Warning] Could not hydrate dynamic system configs:", err);
   }

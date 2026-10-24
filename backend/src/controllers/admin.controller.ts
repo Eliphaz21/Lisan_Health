@@ -232,9 +232,12 @@ export const adminController = {
     if (gemini_ai_key && gemini_ai_key.trim()) {
       await db.setSystemConfig("GEMINI_AI_KEY", gemini_ai_key.trim());
       process.env.GEMINI_API_KEY = gemini_ai_key.trim();
+      config.geminiAi.apiKey = gemini_ai_key.trim();
     }
     if (gemini_model) {
       await db.setSystemConfig("GEMINI_MODEL", gemini_model);
+      process.env.GEMINI_MODEL = gemini_model;
+      config.geminiAi.model = gemini_model;
     }
     if (tts_enabled !== undefined) {
       await db.setSystemConfig("ADDIS_AI_TTS_ENABLED", String(tts_enabled));

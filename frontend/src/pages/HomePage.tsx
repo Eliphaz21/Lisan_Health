@@ -3,7 +3,7 @@ import { LanguageSelector } from '../components/LanguageSelector';
 import { ReportUpload } from '../components/ReportUpload';
 import { ObservationTable } from '../components/ObservationTable';
 import { AudioPlayer } from '../components/AudioPlayer';
-import { StethoscopeIcon, AlertShieldIcon } from '../components/Icons';
+import { StethoscopeIcon, AlertShieldIcon, TrashIcon } from '../components/Icons';
 import type { ExtractedLabReport, SupportedLanguage } from '../types/report';
 import { translations } from '../utils/i18n';
 
@@ -15,6 +15,8 @@ interface HomePageProps {
   isLoading: boolean;
   error: string | null;
   onFileUpload: (file: File) => void;
+  onClearReport?: () => void;
+  currentFileName?: string | null;
 }
 
 export const HomePage: React.FC<HomePageProps> = ({
@@ -25,6 +27,8 @@ export const HomePage: React.FC<HomePageProps> = ({
   isLoading,
   error,
   onFileUpload,
+  onClearReport,
+  currentFileName,
 }) => {
   const t = translations[currentLanguage];
 
@@ -42,8 +46,41 @@ export const HomePage: React.FC<HomePageProps> = ({
       </section>
 
       {error && (
-        <div style={{ background: '#FEE2E2', color: '#991B1B', padding: '1rem', borderRadius: 'var(--radius-md)', marginBottom: '1rem' }}>
-          {error}
+        <div
+          style={{
+            background: '#FEF2F2',
+            border: '1px solid #FCA5A5',
+            color: '#991B1B',
+            padding: '1rem 1.25rem',
+            borderRadius: 'var(--radius-md)',
+            marginBottom: '1.25rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '1rem',
+          }}
+        >
+          <div style={{ fontSize: '0.9rem', lineHeight: 1.5 }}>
+            <strong>Notice:</strong> {error}
+          </div>
+          {onClearReport && (
+            <button
+              type="button"
+              onClick={onClearReport}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#991B1B',
+                fontWeight: 600,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                textDecoration: 'underline',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Dismiss
+            </button>
+          )}
         </div>
       )}
 
@@ -51,10 +88,77 @@ export const HomePage: React.FC<HomePageProps> = ({
         onFileUpload={onFileUpload}
         isLoading={isLoading}
         language={currentLanguage}
+        currentFileName={currentFileName}
+        onClearFile={onClearReport}
       />
 
       {report && (
         <>
+          {/* Action Bar with Report summary and Clear Results button */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              margin: '1.5rem 0 1rem',
+              padding: '0.75rem 1rem',
+              background: '#F8FAFC',
+              border: '1px solid #E2E8F0',
+              borderRadius: 'var(--radius-md)',
+              flexWrap: 'wrap',
+              gap: '0.75rem',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+              <span
+                style={{
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  padding: '3px 8px',
+                  borderRadius: '999px',
+                  background: 'var(--color-primary, #0D9488)',
+                  color: '#FFFFFF',
+                  letterSpacing: '0.04em',
+                }}
+              >
+                {report.status || 'EXTRACTED'}
+              </span>
+              <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-graphite)' }}>
+                {t.resultsTitle}
+              </span>
+              <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                ({report.observations.length} {t.measurementsExtracted})
+              </span>
+            </div>
+
+            {onClearReport && (
+              <button
+                type="button"
+                onClick={onClearReport}
+                data-testid="clear-dashboard-btn"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  padding: '0.45rem 0.85rem',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  color: '#B91C1C',
+                  background: '#FEF2F2',
+                  border: '1px solid #FECACA',
+                  borderRadius: 'var(--radius-sm, 6px)',
+                  cursor: 'pointer',
+                  transition: 'background 0.15s ease',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = '#FEE2E2')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = '#FEF2F2')}
+              >
+                <TrashIcon size={14} color="#B91C1C" />
+                <span>{t.clearResults}</span>
+              </button>
+            )}
+          </div>
+
           <AudioPlayer
             language={currentLanguage}
             explanationText={explanationData?.explanation_localized?.summary || report.raw_text}
@@ -74,7 +178,7 @@ export const HomePage: React.FC<HomePageProps> = ({
               <span>{t.doctorQuestionsTitle}</span>
             </h3>
             <ul style={{ margin: '0.25rem 0 0 1.25rem', color: 'var(--color-graphite)', fontSize: '0.9rem', lineHeight: 1.6 }}>
-              {t.doctorQuestions.map((q, idx) => (
+              {(explanationData?.explanation_localized?.suggested_questions_for_doctor || t.doctorQuestions).map((q: string, idx: number) => (
                 <li key={idx} style={{ marginBottom: '0.35rem' }}>"{q}"</li>
               ))}
             </ul>

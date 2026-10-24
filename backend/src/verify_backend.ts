@@ -69,17 +69,14 @@ async function runTests() {
   assert(!injectedResult.success, "Strict schema rejects unauthorized injected attributes (anti-privilege escalation)");
 
   // 3. Test Regular User Creation
-  const regularEmail = "patient.test@example.com";
-  let regularUser = await db.findUserByEmail(regularEmail);
-  if (!regularUser) {
-    const hash = await bcrypt.hash("Password123!", 12);
-    regularUser = await db.createUser({
-      email: regularEmail,
-      fullName: "Abebe Bikila",
-      passwordHash: hash,
-      role: "USER",
-    });
-  }
+  const regularEmail = `patient.test.${Date.now()}@example.com`;
+  const hash = await bcrypt.hash("Password123!", 12);
+  const regularUser = await db.createUser({
+    email: regularEmail,
+    fullName: "Abebe Bikila",
+    passwordHash: hash,
+    role: "USER",
+  });
   assert(regularUser.role === "USER", "Regular user role is USER");
   assert(regularUser.email === regularEmail, "Regular user email matches");
 

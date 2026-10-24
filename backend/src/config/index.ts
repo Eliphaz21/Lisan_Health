@@ -39,6 +39,13 @@ export const config = {
     voiceOm: process.env.ADDIS_AI_TTS_DEFAULT_VOICE_OM || "chala",
   },
 
+  // Google Gemini AI Provider (Vision OCR & Clinical Reasoning)
+  geminiAi: {
+    apiKey: process.env.GEMINI_API_KEY || "",
+    model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+    timeoutMs: 45000,
+  },
+
   // Storage
   uploadDir: path.resolve(__dirname, "../../../storage/uploads"),
   audioDir: path.resolve(__dirname, "../../../storage/audio"),

@@ -239,8 +239,112 @@ ${text.slice(0, 4000)}`;
 }
 
 /**
+ * Multimodal extraction using Google Gemini Vision (gemini-2.5-flash / gemini-1.5-flash)
+ * Accurately extracts laboratory results from scanned medical images and PDFs.
+ */
+export async function extractReportWithGeminiVision(
+  buffer: Buffer,
+  mimetype: string
+): Promise<ExtractedReport | null> {
+  const apiKey = config.geminiAi?.apiKey || process.env.GEMINI_API_KEY;
+  if (!apiKey) return null;
+
+  const model = config.geminiAi?.model || "gemini-2.5-flash";
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+  const prompt = `You are a certified clinical laboratory report extraction expert for LisanHealth.
+Carefully examine this medical report image or document.
+Extract all laboratory test names, measured values, units, reference intervals, and flags (NORMAL, HIGH, LOW, or ABNORMAL).
+
+CRITICAL MEDICAL SAFETY:
+1. NEVER invent or guess numbers. Extract ONLY values genuinely present in the document.
+2. If numbers or reference ranges are visible, preserve them exactly.
+3. Respond ONLY with a valid, clean JSON object matching this schema:
+{
+  "test_category": "Complete Blood Count (CBC)",
+  "analytes": [
+    {
+      "name": "Hemoglobin",
+      "value": 11.2,
+      "unit": "g/dL",
+      "reference_range_low": 13.5,
+      "reference_range_high": 17.5,
+      "flag": "LOW"
+    }
+  ],
+  "raw_text": "Extracted transcription of the document..."
+}`;
+
+  try {
+    const base64Data = buffer.toString("base64");
+    const mime = mimetype || "image/jpeg";
+
+    const response = await axios.post(
+      url,
+      {
+        contents: [
+          {
+            parts: [
+              { text: prompt },
+              {
+                inline_data: {
+                  mime_type: mime,
+                  data: base64Data,
+                },
+              },
+            ],
+          },
+        ],
+        generationConfig: {
+          temperature: 0.1,
+          responseMimeType: "application/json",
+        },
+      },
+      {
+        headers: { "Content-Type": "application/json" },
+        timeout: config.geminiAi?.timeoutMs || 45000,
+      }
+    );
+
+    const candidates = response.data?.candidates;
+    const contentText = candidates?.[0]?.content?.parts?.[0]?.text;
+    if (contentText) {
+      let clean = contentText.trim();
+      if (clean.startsWith("```")) {
+        clean = clean.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+      }
+      const parsed = JSON.parse(clean);
+      if (parsed && Array.isArray(parsed.analytes) && parsed.analytes.length > 0) {
+        const analytes: AnalyteValue[] = parsed.analytes.map((a: any) => ({
+          name: String(a.name || "Test"),
+          value: Number(a.value) || 0,
+          unit: String(a.unit || ""),
+          reference_range_low: Number(a.reference_range_low) || 0,
+          reference_range_high: Number(a.reference_range_high) || 0,
+          flag: (a.flag || "NORMAL").toUpperCase(),
+          interpretation_hint:
+            a.flag && a.flag !== "NORMAL"
+              ? `Flagged as ${a.flag} (${a.reference_range_low || 0} - ${a.reference_range_high || 0} ${a.unit || ""})`
+              : "Within normal limits",
+        }));
+
+        return {
+          test_category: parsed.test_category || "Clinical Laboratory Report",
+          analytes,
+          raw_text: parsed.raw_text || `Extracted via Gemini Vision from uploaded document (${analytes.length} tests found).`,
+        };
+      }
+    }
+  } catch (err: any) {
+    console.warn("[Gemini Vision Extraction Warning]", err.response?.data?.error?.message || err.message);
+  }
+
+  return null;
+}
+
+/**
  * Extracts clinical lab report from an uploaded file buffer (PDF, image, or text).
- * Fully asynchronous with native PDF stream decoding and AI validation.
+ * Fully asynchronous with native PDF stream decoding, Gemini multimodal vision, and Addis AI.
  */
 export async function extractReportFromFileBuffer(
   buffer: Buffer,
@@ -255,7 +359,7 @@ export async function extractReportFromFileBuffer(
     extractedText = buffer.toString("utf-8");
   }
 
-  // 2. Real PDF Documents (extract all text with pdf-parse)
+  // 2. PDF Documents (extract text with pdf-parse)
   if (mimetype === "application/pdf" || lowerName.endsWith(".pdf")) {
     try {
       const { PDFParse } = require("pdf-parse");
@@ -289,18 +393,24 @@ export async function extractReportFromFileBuffer(
     if (regexReport.analytes.length > 0) {
       return regexReport;
     }
-
-    // If text was found but no analytes parsed, return the raw document without fake data
-    return {
-      test_category: `Clinical Document (${originalname})`,
-      analytes: [],
-      raw_text: extractedText,
-    };
   }
 
-  // 3. Fallback for image scans (PNG, JPG) without readable OCR stream:
-  // Detect panel category from filename or clinical context
-  let category = "Clinical Laboratory Scan";
+  // 3. For images (PNG, JPG, WEBP) or scanned image PDFs without selectable text:
+  // Use Google Gemini Multimodal Vision API
+  const isImageOrPdf =
+    mimetype.startsWith("image/") ||
+    mimetype === "application/pdf" ||
+    /\.(png|jpe?g|webp|pdf)$/i.test(lowerName);
+
+  if (isImageOrPdf) {
+    const visionReport = await extractReportWithGeminiVision(buffer, mimetype || "image/jpeg");
+    if (visionReport && visionReport.analytes.length > 0) {
+      return visionReport;
+    }
+  }
+
+  // 4. Return report with extracted text or notice for image
+  let category = "Clinical Laboratory Document";
   if (lowerName.includes("lipid") || lowerName.includes("cholesterol")) {
     category = "Lipid Profile Panel";
   } else if (lowerName.includes("cbc") || lowerName.includes("blood")) {
@@ -312,6 +422,6 @@ export async function extractReportFromFileBuffer(
   return {
     test_category: category,
     analytes: [],
-    raw_text: `Uploaded medical image file: ${originalname} (${mimetype}). Please ensure test results are typed or provided in text/PDF format for zero-error clinical extraction.`,
+    raw_text: extractedText || `Uploaded medical document: ${originalname} (${mimetype}).`,
   };
 }

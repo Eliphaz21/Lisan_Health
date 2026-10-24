@@ -59,6 +59,23 @@ export const pipelineController = {
       const lang = req.body.target_language === "om" ? "om" : "am";
       const extracted = await extractReportFromFileBuffer(file.buffer, file.originalname, file.mimetype);
 
+      if (extracted.analytes.length === 0) {
+        const isImage = file.mimetype.startsWith("image/") || /\.(png|jpe?g|webp)$/i.test(file.originalname);
+        const hasGemini = Boolean(config.geminiAi?.apiKey || process.env.GEMINI_API_KEY);
+
+        if (isImage && !hasGemini) {
+          res.status(400).json({
+            detail: "Image OCR requires a Google Gemini API Key. Please add your Gemini API Key in the Admin AI Hub (/admin), or upload a digital PDF/TXT lab report.",
+          });
+          return;
+        }
+
+        res.status(422).json({
+          detail: `Could not identify any clinical laboratory values in "${file.originalname}". Please ensure the report contains clear test names and numerical values.`,
+        });
+        return;
+      }
+
       // Stage A: Provider A Clinical Reasoning (English)
       const englishExplanation = explainReportInEnglish(extracted);
 

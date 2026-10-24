@@ -18,12 +18,20 @@ export const App: React.FC = () => {
   const [explanationData, setExplanationData] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentFileName, setCurrentFileName] = useState<string | null>(null);
 
   // Authentication & Modals State
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string>('');
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+
+  const handleClearReport = () => {
+    setReport(null);
+    setExplanationData(null);
+    setError(null);
+    setCurrentFileName(null);
+  };
 
   useEffect(() => {
     // Check saved user session
@@ -201,6 +209,11 @@ export const App: React.FC = () => {
           }).catch((err) => console.warn('Could not auto-save to history:', err));
         }
         return;
+      } else {
+        const errData = await response.json().catch(() => ({}));
+        setError(errData.detail || 'Could not extract laboratory values. For image uploads, please configure Gemini API Key in the Admin Panel.');
+        setCurrentFileName(null);
+        return;
       }
     } catch (err: any) {
       console.warn("Multipart upload fallback to text reader:", err.message);
@@ -228,6 +241,7 @@ export const App: React.FC = () => {
 
   const handleLoadReport = (loaded: any) => {
     setExplanationData(loaded);
+    setCurrentFileName(loaded.original_file_name || loaded.extracted?.test_category || 'Saved Report');
     const obs: LabObservation[] = (loaded.extracted?.analytes || []).map((a: any) => ({
       test_name: a.name,
       code: (a.name || '').substring(0, 4).toUpperCase(),
@@ -277,6 +291,8 @@ export const App: React.FC = () => {
                   isLoading={isLoading}
                   error={error}
                   onFileUpload={handleFileUpload}
+                  onClearReport={handleClearReport}
+                  currentFileName={currentFileName}
                 />
               </>
             }
