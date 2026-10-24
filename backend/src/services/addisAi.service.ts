@@ -1,7 +1,7 @@
 import axios from "axios";
 import fs from "fs";
 import path from "path";
-import { v4 as uuidv4 } from "uuid";
+import crypto from "crypto";
 import { config } from "../config";
 import { ClinicalExplanation, LocalizedExplanation } from "../types";
 import { verifyLocalizationPreservation } from "./validator.service";
@@ -58,6 +58,46 @@ const OROMO_DICT: Record<string, { name: string; plain: string; what: string }> 
   },
 };
 
+function safeEthiopianContext(language: "en" | "am" | "om" | "ti"): string[] {
+  const recommendations: Record<"en" | "am" | "om" | "ti", string[]> = {
+    en: [
+      "Tell your clinician about your usual Ethiopian diet, fasting practices, and daily routine because these may be relevant when they interpret the report.",
+      "Discuss balanced familiar foods such as whole-grain injera, legumes, and vegetables with a qualified professional; do not change a prescribed diet or medicine based on this explanation.",
+      "If you wish, involve a trusted family member in your medical visit while keeping your health information private.",
+      "Take the original report to a qualified health facility, especially when a result is marked outside its reference interval.",
+    ],
+    am: [
+      "የተለመደውን የኢትዮጵያ አመጋገብዎን፣ የጾም ልማድዎን እና የዕለት ተዕለት እንቅስቃሴዎን ለጤና ባለሙያዎ ይንገሩ፤ እነዚህ ሪፖርቱን ሲተረጉሙ ጠቃሚ ሊሆኑ ይችላሉ።",
+      "እንደ ሙሉ እህል እንጀራ፣ ጥራጥሬ እና አትክልት ያሉ የተመጣጠኑ የተለመዱ ምግቦችን ከባለሙያ ጋር ይወያዩ፤ በዚህ ማብራሪያ ምክንያት የታዘዘ ምግብ ወይም መድኃኒት አይቀይሩ።",
+      "ከፈለጉ የጤና መረጃዎን ግላዊነት በመጠበቅ የሚያምኑትን የቤተሰብ አባል በሕክምና ቀጠሮዎ ላይ ማሳተፍ ይችላሉ።",
+      "በተለይ ውጤት ከመደበኛው ክልል ውጭ ከሆነ፣ ዋናውን ሪፖርት ወደ ብቃት ያለው የጤና ተቋም ይዘው ይሂዱ።",
+    ],
+    om: [
+      "Nyaata Itoophiyaa yeroo baayʼee nyaattan, sirna soomaa fi hojii guyyaa guyyaa keessan ogeessa fayyaatti himaa; kun yeroo gabaasicha hiikan barbaachisaa taʼuu dandaʼa.",
+      "Nyaata madaalawaa kan akka injeraa midhaan guutuu, midhaan dheedhii fi kuduraalee ogeessa gahumsa qabu waliin mariʼadhaa; ibsa kana qofaan nyaata ykn qoricha ajajame hin jijjiirinaa.",
+      "Yoo barbaaddan, odeeffannoo fayyaa keessanii iccitii eeguun miseensa maatii amanamaa beellama yaalaa keessan irratti hirmaachisuu dandeessu.",
+      "Keessumaa buʼaan tokko daangaa wabii ala yoo mallatteeffame, gabaasa jalqabaa gara dhaabbata fayyaa gahumsa qabuutti geessaa.",
+    ],
+    ti: [
+      "ልሙድ ናይ ኢትዮጵያ ኣመጋግባኹም፣ ናይ ጾም ልምድኹምን መዓልታዊ ንጥፈታትኩምን ንበዓል ሞያ ጥዕና ንገሩ፤ እዚ ነቲ ጸብጻብ ክትርጉምዎ ከለዉ ኣገዳሲ ክኸውን ይኽእል።",
+      "ከም ናይ ምሉእ እኽሊ እንጀራ፣ ጥረምረን ኣሕምልትን ዝኣመሰሉ ሚዛናዊ ልሙዳት ምግብታት ምስ ብቑዕ በዓል ሞያ ተዘራረቡ፤ ብሰንኪ እዚ መብርሂ ዝተኣዘዘ ኣመጋግባ ወይ መድሃኒት ኣይትቐይሩ።",
+      "እንተደሊኹም፣ ምስጢር ሓበሬታ ጥዕናኹም ብምሕላው እሙን ኣባል ስድራቤት ኣብ ቆጸራ ሕክምናኹም ከሰንየኩም ይኽእል።",
+      "ብፍላይ ሓደ ውጽኢት ካብ ወሰን መወከሲ ወጻኢ እንተኾይኑ፣ ነቲ መበቆላዊ ጸብጻብ ናብ ብቑዕ ትካል ጥዕና ውሰዱ።",
+    ],
+  };
+  return recommendations[language];
+}
+
+function localizationSystemPrompt(targetLanguage: "am" | "om" | "ti"): string {
+  const languageName = targetLanguage === "am" ? "Amharic" : targetLanguage === "om" ? "Afaan Oromoo" : "Tigrinya";
+  return `You are the Ethiopian medical-localization stage of LisanHealth. Return only valid JSON written in ${languageName}.
+Preserve every analyte name, numeric value, unit, reference interval, and status exactly as supplied. Never add or infer a test result.
+Explain findings for education only. Do not diagnose, prescribe, recommend treatment, change medication, or recommend herbs, supplements, traditional remedies, or spiritual practices as healthcare.
+Include a detailed_explanation, a localized_explanation for every analyte, 2-3 questions for a clinician, a disclaimer, and 3-4 culturally aware Ethiopian wellness considerations.
+Cultural considerations may discuss familiar foods, fasting practices, family support, privacy, access to qualified care, and taking the original report to a clinician. They must be optional, respectful of religious and regional diversity, non-prescriptive, and must not tell the user to change prescribed medicines or diets.
+Use this JSON shape: {"summary":"", "detailed_explanation":"", "analytes":[{"name":"", "localized_explanation":""}], "suggested_questions_for_doctor":[], "cultural_wellness_recommendations":[], "disclaimer":""}.`;
+}
+
 export class AddisAiService {
   get apiKey(): string {
     return config.addisAi.apiKey;
@@ -72,7 +112,8 @@ export class AddisAiService {
    */
   async localize(
     explanation: ClinicalExplanation,
-    targetLanguage: "en" | "am" | "om" | "ti"
+    targetLanguage: "en" | "am" | "om" | "ti",
+    options: { allowLiveProvider?: boolean } = {}
   ): Promise<LocalizedExplanation> {
     if (targetLanguage === "en") {
       return {
@@ -83,50 +124,19 @@ export class AddisAiService {
         overall_status: explanation.overall_status,
         analytes: explanation.analytes,
         suggested_questions_for_doctor: explanation.suggested_questions_for_doctor,
-        cultural_wellness_recommendations: [
-          "Discuss these results with a qualified healthcare professional.",
-          "Follow the care and follow-up guidance provided by your clinician.",
-        ],
+        cultural_wellness_recommendations: safeEthiopianContext("en"),
         disclaimer: explanation.disclaimer,
       };
     }
-    if (this.apiKey) {
+    if (this.apiKey && options.allowLiveProvider !== false) {
       try {
         const response = await axios.post(
           `${this.baseUrl}/api/v1/chat_generate`,
           {
-            prompt: JSON.stringify(explanation),
+            prompt: `Localize this validated clinical explanation according to the system rules:\n${JSON.stringify(explanation)}`,
             target_language: targetLanguage,
-            system: "Return only the requested JSON object. Preserve every numeric value, unit, analyte name, reference interval, and flag exactly. Do not diagnose, prescribe, or recommend medication, herbs, or traditional remedies.",
-            model: config.addisAi.textModel || "addis-አሌፍ-፩",
-            messages: [
-              {
-                role: "system",
-                content: `You are an expert Ethiopian medical localization assistant for LisanHealth.
-Translate clinical report explanations into ${targetLanguage === "am" ? "Amharic" : targetLanguage === "om" ? "Afaan Oromoo" : "Tigrinya"}.
-Provide:
-1. "summary": Clear plain-language patient summary.
-2. "detailed_explanation": Comprehensive paragraph explaining what these specific laboratory findings signify in daily health.
-3. "suggested_questions_for_doctor": 2 to 3 practical questions the patient should ask their clinician.
-4. "cultural_wellness_recommendations": 2 to 3 safe, non-prescriptive general wellness considerations. Do not recommend herbs, supplements, or traditional remedies.
-5. "disclaimer": Medical safety disclaimer.
-
-CRITICAL SAFETY RULE: You MUST PRESERVE all numerical values, analyte names, and measurement units identically without altering any numbers.
-Respond ONLY with a JSON object in this format:
-{
-  "summary": "Localized clinical summary paragraph",
-  "detailed_explanation": "Detailed physiological explanation in local language",
-  "suggested_questions_for_doctor": ["question 1", "question 2"],
-  "cultural_wellness_recommendations": ["recommendation 1", "recommendation 2"],
-  "disclaimer": "Medical safety disclaimer"
-}`,
-              },
-              {
-                role: "user",
-                content: JSON.stringify(explanation),
-              },
-            ],
-            temperature: 0.1,
+            system: localizationSystemPrompt(targetLanguage),
+            generation_config: { temperature: 0.1 },
           },
           {
             headers: {
@@ -164,15 +174,7 @@ Respond ONLY with a JSON object in this format:
                   targetLanguage === "am" ? "ይህ ምርመራ ለዕለታዊ ጤንነቴ ምን ትርጉም አለው?" : "Bu'aan kun fayyaa kiyyaaf maal jechuudha?",
                   targetLanguage === "am" ? "ተጨማሪ ምርመራ ወይም የአኗኗር ለውጥ ያስፈልገኛል?" : "Qorannoo dabalataa gochuun na barbaachisaa?",
                 ],
-                cultural_wellness_recommendations: parsed.cultural_wellness_recommendations || (targetLanguage === "am"
-                  ? [
-                      "የተመጣጠነ ምግብ (እንደ ጤፍ፣ ቴልባ እና ትኩስ አትክልቶች) መመገብ የደም እና የሰውነት ጥንካሬን ይደግፋል።",
-                      "ማንኛውንም ባህላዊ መድኃኒት ወይም የዕፅዋት ቅመሞች ከመውሰድዎ በፊት ሁልጊዜ ከሐኪምዎ ጋር ይማከሩ።",
-                    ]
-                  : [
-                      "Soorata madaalawaa (kan akka xaafii, talbaa fi muduraalee) soorachuun dandeettii qaamaa ni gabbisa.",
-                      "Hordoffii fi gorsa ogeessa fayyaa keessanii hordofaa.",
-                    ]),
+                cultural_wellness_recommendations: safeEthiopianContext(targetLanguage),
                 disclaimer: parsed.disclaimer || (targetLanguage === "am"
                   ? "ይህ ማብራሪያ ለትምህርታዊ ግንዛቤ ብቻ የቀረበ ሲሆን የሕክምና ምርመራ ወይም ማዘዣ አይተካም።"
                   : "Ibsi kun hubannoo fi barnootaaf qofa kan qophaa'e dha."),
@@ -192,15 +194,7 @@ Respond ONLY with a JSON object in this format:
               suggested_questions_for_doctor: [
                 targetLanguage === "am" ? "ይህ ምርመራ ለዕለታዊ ጤንነቴ ምን ትርጉም አለው?" : "Bu'aan kun fayyaa kiyyaaf maal jechuudha?",
               ],
-              cultural_wellness_recommendations: targetLanguage === "am"
-                ? [
-                    "የተመጣጠነ ምግብ (እንደ ጤፍ እና አትክልቶች) መመገብ የሰውነትን ጥንካሬ ይደግፋል።",
-                    "ማንኛውንም ባህላዊ መድኃኒት ከመውሰድዎ በፊት ሁልጊዜ ከሐኪምዎ ጋር ይማከሩ።",
-                  ]
-                : [
-                    "Soorata madaalawaa soorachuun fayyaa qaamaa ni eega.",
-                    "Hordoffii fi gorsa ogeessa fayyaa keessanii hordofaa.",
-                  ],
+              cultural_wellness_recommendations: safeEthiopianContext(targetLanguage),
               disclaimer: targetLanguage === "am"
                 ? "ይህ ማብራሪያ ለትምህርታዊ ግንዛቤ ብቻ የቀረበ ሲሆን የሕክምና ምርመራ ወይም ማዘዣ አይተካም።"
                 : "Ibsi kun hubannoo fi barnootaaf qofa kan qophaa'e dha.",
@@ -259,9 +253,11 @@ Respond ONLY with a JSON object in this format:
       language: lang,
       test_category: explanation.test_category,
       summary,
+      detailed_explanation: summary,
       overall_status: explanation.overall_status,
       analytes: localizedAnalytes,
       suggested_questions_for_doctor: questions,
+      cultural_wellness_recommendations: safeEthiopianContext(lang),
       disclaimer,
     };
 
@@ -270,14 +266,19 @@ Respond ONLY with a JSON object in this format:
   }
 
   /**
-   * Generates Ethiopian Speech via Addis AI TTS or synthetic audio generator.
+   * Generates authenticated Ethiopian speech via Addis AI TTS.
    */
-  async synthesizeSpeech(text: string, language: "en" | "am" | "om" | "ti"): Promise<{ audioId: string; audioPath: string }> {
-    const audioId = uuidv4();
-    fs.mkdirSync(config.audioDir, { recursive: true });
-    const audioPath = path.join(config.audioDir, `${audioId}.mp3`);
-
+  async synthesizeSpeech(text: string, language: "en" | "am" | "om" | "ti", ownerId: string): Promise<{ audioId: string; audioPath: string }> {
     const voice = language === "en" ? config.addisAi.voiceEn : language === "am" ? config.addisAi.voiceAm : language === "om" ? config.addisAi.voiceOm : config.addisAi.voiceTi;
+    const audioId = crypto.createHash("sha256").update(`${ownerId}\0${language}\0${voice}\0${text}`).digest("hex").slice(0, 48);
+    const ownerDirectory = path.join(config.audioDir, ownerId);
+    fs.mkdirSync(ownerDirectory, { recursive: true });
+    const audioPath = path.join(ownerDirectory, `${audioId}.mp3`);
+    const temporaryPath = `${audioPath}.part`;
+
+    if (fs.existsSync(audioPath) && this.isValidMp3(fs.readFileSync(audioPath))) {
+      return { audioId, audioPath };
+    }
 
     if (this.apiKey && config.addisAi.ttsEnabled) {
       try {
@@ -301,68 +302,36 @@ Respond ONLY with a JSON object in this format:
 
         const remoteAudioUrl = response.data?.data?.audio_url || response.data?.audio_url || response.data?.url;
         if (remoteAudioUrl) {
-          const audioResponse = await axios.get(remoteAudioUrl, { responseType: "arraybuffer", timeout: config.addisAi.timeoutMs });
-          fs.writeFileSync(audioPath, Buffer.from(audioResponse.data));
+          const audioResponse = await axios.get(remoteAudioUrl, {
+            responseType: "arraybuffer",
+            timeout: config.addisAi.timeoutMs,
+            maxContentLength: 15 * 1024 * 1024,
+            maxBodyLength: 15 * 1024 * 1024,
+          });
+          fs.writeFileSync(temporaryPath, Buffer.from(audioResponse.data));
         } else if (response.data?.data?.audio_base64 || response.data?.audio_base64) {
-          fs.writeFileSync(audioPath, Buffer.from(response.data?.data?.audio_base64 || response.data.audio_base64, "base64"));
+          fs.writeFileSync(temporaryPath, Buffer.from(response.data?.data?.audio_base64 || response.data.audio_base64, "base64"));
         } else {
           throw new Error("Addis AI returned no audio URL or audio payload.");
         }
-        if (fs.statSync(audioPath).size < 100) throw new Error("Addis AI returned an empty audio file.");
+        const audio = fs.readFileSync(temporaryPath);
+        if (!this.isValidMp3(audio)) throw new Error("Addis AI returned an invalid or empty MP3 payload.");
+        fs.renameSync(temporaryPath, audioPath);
         return { audioId, audioPath };
       } catch (err: any) {
-        throw new Error(`Addis AI speech generation failed: ${err?.response?.status || err.message}`);
+        if (fs.existsSync(temporaryPath)) fs.rmSync(temporaryPath, { force: true });
+        throw Object.assign(new Error(`Addis AI speech generation failed: ${err?.response?.status || err.message}`), { status: 502 });
       }
     }
 
-    // Generate valid WAV audio file with RIFF header
-    const estimatedDuration = Math.max(4, Math.min(60, Math.ceil(text.length / 15)));
-    const wavBuffer = this.generateSyntheticWav(estimatedDuration);
-    fs.writeFileSync(audioPath, wavBuffer);
-    return { audioId, audioPath };
+    throw Object.assign(new Error("Addis AI speech is not configured or has been disabled."), { status: 503 });
   }
 
-  private generateSyntheticWav(durationSeconds: number = 6): Buffer {
-    const sampleRate = 16000;
-    const numChannels = 1;
-    const bitsPerSample = 16;
-    const numSamples = sampleRate * durationSeconds;
-    const dataSize = numSamples * numChannels * (bitsPerSample / 8);
-    const headerSize = 44;
-    const buffer = Buffer.alloc(headerSize + dataSize);
-
-    // RIFF identifier
-    buffer.write("RIFF", 0);
-    buffer.writeUInt32LE(36 + dataSize, 4);
-    buffer.write("WAVE", 8);
-
-    // format chunk
-    buffer.write("fmt ", 12);
-    buffer.writeUInt32LE(16, 16);
-    buffer.writeUInt16LE(1, 20); // PCM
-    buffer.writeUInt16LE(numChannels, 22);
-    buffer.writeUInt32LE(sampleRate, 24);
-    buffer.writeUInt32LE(sampleRate * numChannels * (bitsPerSample / 8), 28);
-    buffer.writeUInt16LE(numChannels * (bitsPerSample / 8), 32);
-    buffer.writeUInt16LE(bitsPerSample, 34);
-
-    // data chunk
-    buffer.write("data", 36);
-    buffer.writeUInt32LE(dataSize, 40);
-
-    // Fill with melodic synthesized audible speech notification waveform
-    for (let i = 0; i < numSamples; i++) {
-      const t = i / sampleRate;
-      const envelope = Math.sin((Math.PI * i) / numSamples) * Math.exp(-t * 0.35);
-      const freq1 = Math.sin(2 * Math.PI * 440 * t);
-      const freq2 = Math.sin(2 * Math.PI * 554.37 * t);
-      const freq3 = Math.sin(2 * Math.PI * 659.25 * t);
-      const wave = (freq1 * 0.5 + freq2 * 0.3 + freq3 * 0.2) * envelope;
-      const sampleVal = Math.max(-32767, Math.min(32767, Math.floor(wave * 18000)));
-      buffer.writeInt16LE(sampleVal, headerSize + i * 2);
-    }
-
-    return buffer;
+  private isValidMp3(audio: Buffer): boolean {
+    if (audio.length < 1024 || audio.length > 15 * 1024 * 1024) return false;
+    const hasId3 = audio.subarray(0, 3).toString("ascii") === "ID3";
+    const hasFrameSync = audio[0] === 0xff && (audio[1] & 0xe0) === 0xe0;
+    return hasId3 || hasFrameSync;
   }
 }
 

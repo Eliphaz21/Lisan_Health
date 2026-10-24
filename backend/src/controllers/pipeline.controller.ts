@@ -48,19 +48,12 @@ export const pipelineController = {
       // Stage B: Provider B Addis AI Localization (Amharic or Afaan Oromoo)
       const localizedExplanation = await addisAiService.localize(englishExplanation, lang);
 
-      // Stage C: Speech Synthesis (TTS)
-      const speechSummary = `${localizedExplanation.summary} ${localizedExplanation.analytes
-        .map((a) => `${a.name}: ${a.value} ${a.unit}.`)
-        .join(" ")}`;
-
-      const { audioId } = await addisAiService.synthesizeSpeech(speechSummary, lang);
-      const audioUrl = `/api/v1/speech/stream/${audioId}`;
-
       res.json({
         extracted,
         explanation_en: englishExplanation,
         explanation_localized: localizedExplanation,
-        audio_url: audioUrl,
+        audio_url: null,
+        speech_status: "available_on_demand",
         language: lang,
       });
     } catch (err: any) {
@@ -105,19 +98,12 @@ export const pipelineController = {
       // Stage B: Provider B Addis AI Localization (Amharic or Afaan Oromoo)
       const localizedExplanation = await addisAiService.localize(englishExplanation, lang);
 
-      // Stage C: Speech Synthesis (TTS)
-      const speechSummary = `${localizedExplanation.summary} ${localizedExplanation.analytes
-        .map((a) => `${a.name}: ${a.value} ${a.unit}.`)
-        .join(" ")}`;
-
-      const { audioId } = await addisAiService.synthesizeSpeech(speechSummary, lang);
-      const audioUrl = `/api/v1/speech/stream/${audioId}`;
-
       res.json({
         extracted,
         explanation_en: englishExplanation,
         explanation_localized: localizedExplanation,
-        audio_url: audioUrl,
+        audio_url: null,
+        speech_status: "available_on_demand",
         language: lang,
         file_name: file.originalname,
       });

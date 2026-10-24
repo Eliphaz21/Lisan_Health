@@ -7,12 +7,20 @@ async function purgeExpiredAudio(): Promise<void> {
   const directory = config.audioDir;
   const cutoff = Date.now() - config.retentionHours * 60 * 60 * 1000;
   try {
-    const entries = await fs.readdir(directory, { withFileTypes: true });
-    await Promise.all(entries.filter((entry) => entry.isFile()).map(async (entry) => {
-      const filePath = path.join(directory, entry.name);
-      const stat = await fs.stat(filePath);
-      if (stat.mtimeMs < cutoff) await fs.unlink(filePath);
-    }));
+    async function purgeDirectory(currentDirectory: string): Promise<void> {
+      const entries = await fs.readdir(currentDirectory, { withFileTypes: true });
+      await Promise.all(entries.map(async (entry) => {
+        const filePath = path.join(currentDirectory, entry.name);
+        if (entry.isDirectory()) {
+          await purgeDirectory(filePath);
+          if ((await fs.readdir(filePath)).length === 0) await fs.rmdir(filePath);
+          return;
+        }
+        const stat = await fs.stat(filePath);
+        if (stat.mtimeMs < cutoff || entry.name.endsWith(".part")) await fs.unlink(filePath);
+      }));
+    }
+    await purgeDirectory(directory);
   } catch (err: any) {
     if (err?.code !== "ENOENT") console.warn("[Retention] Audio cleanup failed:", err?.message);
   }

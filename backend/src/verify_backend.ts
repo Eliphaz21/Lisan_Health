@@ -115,19 +115,21 @@ async function runTests() {
   assert(!threwPreservationError, "Medical preservation invariants satisfied for Stage A");
 
   // 8. Test Addis AI Localization (Amharic & Afaan Oromoo)
-  const amharicLocalized = await addisAiService.localize(englishExplanation, "am");
+  const amharicLocalized = await addisAiService.localize(englishExplanation, "am", { allowLiveProvider: false });
   assert(amharicLocalized.language === "am", "Amharic localization returned");
   assert(amharicLocalized.analytes[0].value === 11.2, "Amharic preserved exact numeric value (11.2)");
+  assert((amharicLocalized.cultural_wellness_recommendations?.length || 0) >= 3, "Amharic includes safe Ethiopian cultural context");
 
-  const oromoLocalized = await addisAiService.localize(englishExplanation, "om");
+  const oromoLocalized = await addisAiService.localize(englishExplanation, "om", { allowLiveProvider: false });
   assert(oromoLocalized.language === "om", "Afaan Oromoo localization returned");
   assert(oromoLocalized.analytes[0].value === 11.2, "Afaan Oromoo preserved exact numeric value (11.2)");
+  assert((oromoLocalized.cultural_wellness_recommendations?.length || 0) >= 3, "Afaan Oromoo includes safe Ethiopian cultural context");
 
-  // 9. Test Speech Synthesis
-  const speechRes = await addisAiService.synthesizeSpeech("ጤና ይስጥልኝ፤ የሕክምና ሪፖርት ማብራሪያ።", "am");
-  assert(Boolean(speechRes.audioId), "Generated valid audio ID for TTS");
+  const tigrinyaLocalized = await addisAiService.localize(englishExplanation, "ti", { allowLiveProvider: false });
+  assert(tigrinyaLocalized.language === "ti", "Tigrinya localization returned");
+  assert((tigrinyaLocalized.cultural_wellness_recommendations?.length || 0) >= 3, "Tigrinya includes safe Ethiopian cultural context");
 
-  // 10. Test Report History Persistence
+  // 9. Test Report History Persistence. Automated tests never call paid AI providers.
   const saved = await db.saveReport({
     userId: regularUser.id,
     originalFileName: "cbc_report.pdf",
@@ -136,7 +138,6 @@ async function runTests() {
     explanationJson: englishExplanation,
     localizedAmharic: amharicLocalized,
     localizedOromo: oromoLocalized,
-    audioAmharicUrl: `/api/v1/speech/stream/${speechRes.audioId}`,
   });
   assert(Boolean(saved.id), "Saved report record to history");
 

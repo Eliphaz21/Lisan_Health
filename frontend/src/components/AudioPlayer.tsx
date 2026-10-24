@@ -69,7 +69,8 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ language, explanationT
       });
 
       if (!response.ok) {
-        throw new Error(`Synthesis HTTP ${response.status}`);
+        const errorBody = await response.json().catch(() => null);
+        throw new Error(errorBody?.detail || `Speech synthesis failed (HTTP ${response.status}).`);
       }
 
       const data = await response.json();

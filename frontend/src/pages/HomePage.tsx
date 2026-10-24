@@ -161,7 +161,14 @@ export const HomePage: React.FC<HomePageProps> = ({
 
           <AudioPlayer
             language={currentLanguage}
-            explanationText={explanationData?.explanation_localized?.summary || report.raw_text}
+            explanationText={[
+              explanationData?.explanation_localized?.summary || report.raw_text,
+              ...(explanationData?.explanation_localized?.analytes || []).map((item: any) =>
+                `${item.name}: ${item.value} ${item.unit || ''}. ${item.localized_explanation || item.plain_explanation || ''}`
+              ),
+              ...(explanationData?.explanation_localized?.suggested_questions_for_doctor || []),
+              explanationData?.explanation_localized?.disclaimer,
+            ].filter(Boolean).join(' ')}
           />
 
           <ObservationTable
@@ -195,9 +202,6 @@ export const HomePage: React.FC<HomePageProps> = ({
                   <li key={idx} style={{ marginBottom: '0.35rem' }}>{rec}</li>
                 ))}
               </ul>
-              <div style={{ marginTop: '0.75rem', fontSize: '0.8rem', color: '#15803D', fontStyle: 'italic' }}>
-                * ማስታወሻ: ማንኛውንም ባህላዊ መድኃኒት ወይም የዕፅዋት ቅመሞች ከመውሰድዎ በፊት ሁልጊዜ ከባለሙያ ሐኪም ጋር ይማከሩ።
-              </div>
             </div>
           )}
 
