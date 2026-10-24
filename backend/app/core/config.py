@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "development_secret_key_change_in_production_32chars"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     ALGORITHM: str = "HS256"
-    ADMIN_EMAIL: str = "eliphazyab@gmail.com"
+    ADMIN_EMAIL: str = "admin@example.com"
 
 
     # Storage

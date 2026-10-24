@@ -136,7 +136,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({ isOpen, onClose, token }
               LisanHealth Administrator Panel
             </h2>
             <span style={{ fontSize: '0.8rem', color: '#B8F7E4', fontWeight: 600 }}>
-              RBAC & Database Governance (eliphazyab@gmail.com)
+              RBAC & Database Governance {stats?.activeAdmin ? `(${stats.activeAdmin})` : ''}
             </span>
           </div>
           <button

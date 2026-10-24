@@ -23,35 +23,24 @@ export const authController = {
 
     const existing = await db.findUserByEmail(cleanEmail);
 
-    // If an existing user is NOT the designated admin, reject duplicate registration
-    if (existing && !isAdminEmail) {
+    // Reject duplicate registration unconditionally (prevents account enumeration and overwrite attacks)
+    if (existing) {
       res.status(409).json({ detail: "An account with this email address already exists. Please sign in." });
       return;
     }
 
     // High security bcrypt cost factor
     const passwordHash = await bcrypt.hash(password, 12);
+    // Role is automatically ADMIN if email matches configured admin email
     const role = isAdminEmail ? "ADMIN" : "USER";
 
-    let user;
-    if (existing && isAdminEmail) {
-      // Designated admin registering or claiming their account with their own password
-      user = await db.updateUserPasswordAndProfile(existing.id, {
-        fullName: full_name,
-        passwordHash,
-        role: "ADMIN",
-        isActive: true,
-      });
-      console.log(`[Auth] Designated administrator claimed account with custom password: ${cleanEmail}`);
-    } else {
-      user = await db.createUser({
-        email: cleanEmail,
-        fullName: full_name,
-        passwordHash,
-        role,
-      });
-      console.log(`[Auth] Created new user account (${role}): ${cleanEmail}`);
-    }
+    const user = await db.createUser({
+      email: cleanEmail,
+      fullName: full_name,
+      passwordHash,
+      role,
+    });
+    console.log(`[Auth] Registered new account (${role}): ${cleanEmail}`);
 
     const token = jwt.sign({ sub: user.id, role: user.role }, config.jwtSecret, {
       expiresIn: config.jwtExpiresIn as any,

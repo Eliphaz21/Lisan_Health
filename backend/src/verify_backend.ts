@@ -30,32 +30,20 @@ async function runTests() {
   await initDb();
   assert(true, "Database initialization completed without throwing");
 
-  // 2. Test User Registration & Auto Admin Promotion
-  const adminEmail = config.adminEmail;
-  const adminUser = await db.findUserByEmail(adminEmail);
-  assert(adminUser !== null, `Admin user exists for ${adminEmail}`);
-  assert(adminUser?.role === "ADMIN", `Admin user has role ADMIN`);
-
-  // 2b. Test Custom Admin Password Claim via updateUserPasswordAndProfile
+  // 2. Test User Creation & Password Hash Verification
   const testAdminEmail = `test.admin.${Date.now()}@example.com`;
-  const initialHash = await bcrypt.hash("InitialPass123!", 10);
+  const initialHash = await bcrypt.hash("TemporaryComplexPass123!", 10);
   const testAdminUser = await db.createUser({
     email: testAdminEmail,
     fullName: "Test Admin",
     passwordHash: initialHash,
     role: "ADMIN",
   });
-  const customAdminPassword = "AdminSecure@2026!";
-  const customHash = await bcrypt.hash(customAdminPassword, 12);
-  const updatedAdmin = await db.updateUserPasswordAndProfile(testAdminUser.id, {
-    fullName: "System Lead Admin",
-    passwordHash: customHash,
-    role: "ADMIN",
-    isActive: true,
-  });
-  assert(updatedAdmin.role === "ADMIN", "Admin retains ADMIN role after custom password claim");
-  const isCustomAdminMatch = await bcrypt.compare(customAdminPassword, updatedAdmin.password_hash);
-  assert(isCustomAdminMatch, "Admin successfully authenticates with custom password");
+  assert(testAdminUser.role === "ADMIN", "Admin user created with role ADMIN");
+
+  // 2b. Test User Role Updates
+  const roleUpdated = await db.updateUserRole(testAdminUser.id, "ADMIN");
+  assert(roleUpdated === true, "User role successfully updated to ADMIN in database");
 
   // 2c. Test Strict Schema Validation Rules
   const weakPasswordTest = {
@@ -157,8 +145,11 @@ async function runTests() {
 
   // 11. Test Admin Stats
   const stats = await db.countStats();
-  assert(stats.totalUsers >= 2, "Admin stats counts all users accurately");
-  assert(Boolean(stats.activeAdmin), "Admin stats reports active admin email");
+  assert(stats.totalUsers >= 1, "Admin stats counts all users accurately");
+  // 12. Cleanup test synthetic users
+  await db.deleteUser(testAdminUser.id);
+  await db.deleteUser(regularUser.id);
+  assert(true, "Cleaned up synthetic test users from database");
 
   console.log("================================================================");
   console.log(`VERIFICATION SUMMARY: ${testsPassed} PASSED, ${testsFailed} FAILED`);
@@ -166,6 +157,8 @@ async function runTests() {
 
   if (testsFailed > 0) {
     process.exit(1);
+  } else {
+    process.exit(0);
   }
 }
 

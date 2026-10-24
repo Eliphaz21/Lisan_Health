@@ -279,20 +279,6 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onLoginSuccess }) =>
                   e.target.style.boxShadow = 'none';
                 }}
               />
-              {email.toLowerCase().trim() === 'eliphazyab@gmail.com' && (
-                <div style={{
-                  backgroundColor: '#F0FDF9',
-                  border: '1px solid #89E6CB',
-                  borderRadius: '6px',
-                  padding: '0.45rem 0.65rem',
-                  fontSize: '0.75rem',
-                  color: '#0D6E54',
-                  fontWeight: 600,
-                  marginTop: '0.35rem',
-                }}>
-                  Designated Administrator: You are creating your custom administrative credentials with full ADMIN privileges.
-                </div>
-              )}
             </div>
 
             <div style={{ marginBottom: '0.85rem' }}>

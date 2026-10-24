@@ -23,7 +23,7 @@ export const config = {
   // Security
   jwtSecret: process.env.SECRET_KEY || "d3eccfbc4acb10b77bb53cee4ef6c57f6363f8969ebbd8dbe1749901ed40bfec",
   jwtExpiresIn: process.env.ACCESS_TOKEN_EXPIRE_MINUTES ? `${process.env.ACCESS_TOKEN_EXPIRE_MINUTES}m` : "7d",
-  adminEmail: (process.env.ADMIN_EMAIL || "eliphazyab@gmail.com").toLowerCase().trim(),
+  adminEmail: (process.env.ADMIN_EMAIL || "admin@example.com").toLowerCase().trim(),
 
   // Database
   databaseUrl: resolveDatabaseUrl(process.env.DATABASE_URL),

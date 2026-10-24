@@ -83,18 +83,6 @@ export async function initDb(): Promise<void> {
       );
     `);
 
-    // Seed admin user
-    const adminEmail = config.adminEmail;
-    const existing = await client.query("SELECT id FROM users WHERE LOWER(email) = $1", [adminEmail]);
-    if (existing.rows.length === 0) {
-      const hash = await bcrypt.hash("AdminLisan@2026!", 10);
-      await client.query(
-        "INSERT INTO users (id, email, full_name, password_hash, role, is_active) VALUES ($1, $2, $3, $4, $5, $6)",
-        [uuidv4(), adminEmail, "LisanHealth Administrator", hash, "ADMIN", true]
-      );
-      console.log(`[Database] Seeded default administrator: ${adminEmail}`);
-    }
-
     client.release();
     console.log("[Database] Connected successfully to AletCloud PostgreSQL 17.");
   } catch (err: any) {
@@ -102,25 +90,6 @@ export async function initDb(): Promise<void> {
       `[Database] Warning: Remote PostgreSQL connection failed (${err.message}). Using resilient persistent local fallback.`
     );
     isConnectedToPostgres = false;
-    await seedMemoryAdmin();
-  }
-}
-
-async function seedMemoryAdmin() {
-  const adminEmail = config.adminEmail;
-  if (!memoryStore.users.has(adminEmail)) {
-    const hash = await bcrypt.hash("AdminLisan@2026!", 10);
-    const adminUser: UserRecord = {
-      id: uuidv4(),
-      email: adminEmail,
-      full_name: "LisanHealth Administrator",
-      password_hash: hash,
-      role: "ADMIN",
-      is_active: true,
-      created_at: new Date(),
-      updated_at: new Date(),
-    };
-    memoryStore.users.set(adminEmail, adminUser);
   }
 }
 
@@ -174,6 +143,8 @@ export const db = {
       updated_at: now,
     };
 
+    memoryStore.users.set(cleanEmail, user);
+
     if (isConnectedToPostgres) {
       try {
         const res = await pool.query(
@@ -185,7 +156,6 @@ export const db = {
         console.warn("[Database] Fallback insert to memory:", err);
       }
     }
-    memoryStore.users.set(cleanEmail, user);
     return user;
   },
 
