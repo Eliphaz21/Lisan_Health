@@ -37,9 +37,17 @@ async function runTests() {
   assert(adminUser?.role === "ADMIN", `Admin user has role ADMIN`);
 
   // 2b. Test Custom Admin Password Claim via updateUserPasswordAndProfile
+  const testAdminEmail = `test.admin.${Date.now()}@example.com`;
+  const initialHash = await bcrypt.hash("InitialPass123!", 10);
+  const testAdminUser = await db.createUser({
+    email: testAdminEmail,
+    fullName: "Test Admin",
+    passwordHash: initialHash,
+    role: "ADMIN",
+  });
   const customAdminPassword = "AdminSecure@2026!";
   const customHash = await bcrypt.hash(customAdminPassword, 12);
-  const updatedAdmin = await db.updateUserPasswordAndProfile(adminUser!.id, {
+  const updatedAdmin = await db.updateUserPasswordAndProfile(testAdminUser.id, {
     fullName: "System Lead Admin",
     passwordHash: customHash,
     role: "ADMIN",
