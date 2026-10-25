@@ -114,6 +114,7 @@ jobs:
         with:
           target: 'http://localhost:3000'
           fail_action: true
+          allow_issue_writing: false
       - if: always()
         run: docker compose down -v
 
