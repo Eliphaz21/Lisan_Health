@@ -112,11 +112,12 @@ jobs:
       - name: Start disposable frontend stack
         run: docker compose up -d --build
       - name: Run OWASP ZAP baseline scan
-        uses: zaproxy/action-baseline@v0.12.0
+        uses: zaproxy/action-baseline@v0.15.0
         with:
           target: 'http://localhost:3000'
           fail_action: true
           allow_issue_writing: false
+          artifact_name: zap-scan
       - if: always()
         run: docker compose down -v
 
@@ -143,8 +144,8 @@ jobs:
           file: backend/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/lisan-backend:${{ github.sha }}
-            ghcr.io/${{ github.repository_owner }}/lisan-backend:latest
+            ghcr.io/eliphaz21/lisan-backend:${{ github.sha }}
+            ghcr.io/eliphaz21/lisan-backend:latest
 
       - name: Build & Push Frontend Container
         uses: docker/build-push-action@v5
@@ -153,5 +154,5 @@ jobs:
           file: frontend/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/lisan-frontend:${{ github.sha }}
-            ghcr.io/${{ github.repository_owner }}/lisan-frontend:latest
+            ghcr.io/eliphaz21/lisan-frontend:${{ github.sha }}
+            ghcr.io/eliphaz21/lisan-frontend:latest
