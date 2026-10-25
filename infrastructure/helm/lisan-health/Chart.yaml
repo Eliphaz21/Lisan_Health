@@ -7,8 +7,10 @@ appVersion: "1.0.0"
 keywords:
   - medical
   - health
+  - english
   - amharic
-  - oromo
+  - afaan-oromo
+  - tigrinya
   - ethiopia
   - typescript
   - react
