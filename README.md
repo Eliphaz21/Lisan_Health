@@ -1,7 +1,7 @@
 # LisanHealth
 
 <p align="center"><img src="./frontend/public/logo.png" alt="LisanHealth logo" width="112" /></p>
-<p align="center"><strong>Your health report, in your language.</strong></p>
+<p align="center"><strong>Your health report, in your language · ልሳን ጤና</strong></p>
 
 LisanHealth is an Ethiopian-focused multilingual medical-report explainer for English, Amharic (`am`), Afaan Oromoo (`om`), and Tigrinya (`ti`). It provides structured educational explanations and on-demand speech. It is not a diagnostic, prescribing, or treatment system.
 
@@ -48,17 +48,36 @@ flowchart LR
 | `docs/` | Product, requirements, architecture, testing, security, and approval gates |
 | `.github/workflows/` | CI quality gates and CD validation/image publishing |
 
-## Local development (Windows PowerShell)
+## DevOps stack
 
-Copy `.env.example` to `.env`, edit it locally, and never commit secrets. Then run `npm ci`, `npm run build`, `npm test`, `npm run test:api`, and `npm run dev` inside `backend`. In a second terminal run `npm ci` and `npm run dev` inside `frontend`. Open `http://localhost:5173`; the API normally listens on `http://localhost:8000`. Check `/api/v1/health` and `/api/v1/ready` before uploads. Use a dedicated AletCloud/PostgreSQL development database, never production.
+The project demonstrates the complete delivery path: Git and GitHub Actions for CI/CD, multi-stage Docker images and Compose for local environments, Kustomize and Helm for Kubernetes packaging, Terraform for AWS VPC/EKS infrastructure, GHCR for immutable container images, and Prometheus/Grafana configuration for observability. AWS deployment remains an account-specific step described in the infrastructure guide.
 
-## Docker Compose
+## Run the website
 
-Run `docker compose config`, then `docker compose up --build -d`, `docker compose ps`, and `Invoke-WebRequest http://localhost:8000/api/v1/health`. Stop with `docker compose down`. Docker Hub TLS timeouts are network/image-download failures; renaming a cached Postgres tag does not replace missing Node or Nginx base images.
+Use Windows PowerShell and follow these steps:
 
-## Verification and delivery
+1. Copy `.env.example` to `.env` and add local development values. Never commit `.env` or API keys.
+2. Start the backend: `cd backend`, `npm ci`, `npm run build`, `npm test`, then `npm run dev`.
+3. In a second terminal start the frontend: `cd frontend`, `npm ci`, then `npm run dev`.
+4. Open `http://localhost:5173` and confirm the API health at `http://localhost:8000/api/v1/health`.
+5. Sign in, select `English`, `Amharic`, `Afaan Oromoo`, or `Tigrinya`, and upload a synthetic report.
 
-Backend and frontend builds/tests, disposable PostgreSQL integration tests, Docker/Compose, Kustomize, Helm, Terraform, dependency/security checks, and GHCR publishing are covered by CI. ZAP/Trivy results are security evidence requiring review; a green workflow is not a professional penetration test.
+For a containerized run, use `docker compose config`, `docker compose up --build -d`, and `docker compose ps`. Stop it with `docker compose down`. Use a dedicated AletCloud/PostgreSQL development database for cloud-backed local testing; never use production data.
+
+## Addis AI speech workflow
+
+1. Provider A extracts and explains the report in a structured English result.
+2. Addis AI converts that approved result into the selected local language: Amharic, Afaan Oromoo, or Tigrinya. English remains available as the source language.
+3. The localized explanation, safety disclaimer, cultural context, and doctor questions are shown as text.
+4. Speech is generated only after the user presses **Play**, using the selected language voice configured for Addis AI.
+5. The backend authenticates and stores the generated audio privately with the user’s report history; it is never publicly served.
+6. If speech generation fails, the localized text remains available and the UI shows a clear error instead of an empty audio player.
+
+Audio availability depends on the configured Addis AI voice and valid server-side credentials. The browser never receives the Addis AI API key.
+
+## Delivery and AWS status
+
+CI validates backend/frontend builds and tests, disposable PostgreSQL, Docker, Kustomize, Helm, Terraform, dependency/security checks, and GHCR publishing. ZAP/Trivy results are security evidence requiring review; a green workflow is not a professional penetration test.
 
 Terraform provisions an AWS EKS cluster with EC2-backed worker nodes; it is not an already deployed AWS environment. Before `terraform apply`, configure approved remote state, AWS/OIDC credentials, DNS/TLS, secrets, PostgreSQL network access, backups, and cost limits. See [infrastructure/README.md](infrastructure/README.md).
 
