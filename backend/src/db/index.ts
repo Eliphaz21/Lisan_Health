@@ -5,9 +5,23 @@ import { config } from "../config";
 import { UserRecord, SavedReport } from "../types";
 import crypto from "crypto";
 
+function normalizeDatabaseUrl(rawUrl: string): string {
+  if (!rawUrl) return rawUrl;
+  try {
+    const parsed = new URL(rawUrl);
+    // pg's connection-string parser can override the explicit ssl object when
+    // sslmode is present in the URL. TLS policy is controlled by our config.
+    parsed.searchParams.delete("sslmode");
+    parsed.searchParams.delete("uselibpqcompat");
+    return parsed.toString();
+  } catch {
+    return rawUrl;
+  }
+}
+
 // Setup PostgreSQL pool with connection timeout
 export const pool = new Pool({
-  connectionString: config.databaseUrl,
+  connectionString: normalizeDatabaseUrl(config.databaseUrl),
   connectionTimeoutMillis: 5000,
   idleTimeoutMillis: 30000,
   max: 10,
