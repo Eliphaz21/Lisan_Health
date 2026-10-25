@@ -54,6 +54,7 @@ temp_uploads/
 !tests/fixtures/*.png
 !frontend/public/*.png
 !frontend/src/assets/*.png
+!docs/screenshots/*.png
 
 # Generated Audio Files (TTS Output)
 audio_output/

@@ -173,11 +173,28 @@ Licensed under the [MIT License](LICENSE).
 
 These screenshots show the current product experience using synthetic data. They cover the multilingual home screen, localized report explanation with Addis AI speech, saved report history, and authentication.
 
-> The screenshot files must be copied into `docs/screenshots/` before these gallery links are enabled. They are intentionally kept separate from application assets so they do not increase the production web bundle.
+The screenshots are stored separately from application assets so they do not increase the production web bundle.
 
-Planned gallery assets:
+### Multilingual upload experience
 
-- `home-amharic.png` — multilingual upload experience.
-- `report-amharic-speech.png` — localized report with the Addis AI speech player.
-- `history.png` — private saved-report history.
-- `sign-in.png` — secure sign-in page.
+![LisanHealth multilingual upload experience](docs/screenshots/home-amharic.png)
+
+The home screen demonstrates the four-language selector, Amharic interface, authenticated navigation, upload area, and medical safety notice.
+
+### Localized report and Addis AI speech
+
+![Localized report with Addis AI speech player](docs/screenshots/report-amharic-speech.png)
+
+This view shows extracted laboratory values, reference ranges, localized explanation, doctor questions, and the Addis AI audio player.
+
+### Private report history
+
+![LisanHealth private report history](docs/screenshots/history.png)
+
+History displays saved reports for the signed-in user, out-of-range indicators, language labels, and audio availability.
+
+### Secure sign-in
+
+![LisanHealth sign-in page](docs/screenshots/sign-in.png)
+
+The sign-in screen protects report upload, history, and speech access behind authentication.
