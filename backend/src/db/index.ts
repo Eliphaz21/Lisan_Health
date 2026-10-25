@@ -12,7 +12,7 @@ export const pool = new Pool({
   idleTimeoutMillis: 30000,
   max: 10,
   ssl: config.databaseUrl.includes("sslmode=require") || config.databaseUrl.includes("sslmode=verify")
-    ? { rejectUnauthorized: true }
+    ? { rejectUnauthorized: config.databaseSslRejectUnauthorized }
     : false,
 });
 
