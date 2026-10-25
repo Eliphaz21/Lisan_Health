@@ -32,6 +32,7 @@ export const config = {
 
   // Database
   databaseUrl: resolveDatabaseUrl(process.env.DATABASE_URL),
+  databaseSslRejectUnauthorized: process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== "false",
 
   // Addis AI Provider
   addisAi: {
