@@ -1,7 +1,8 @@
 # LisanHealth
 
 <p align="center"><img src="./frontend/public/logo.png" alt="LisanHealth logo" width="112" /></p>
-<p align="center"><strong>Your health report, in your language · ልሳን ጤና</strong></p>
+<p align="center"><strong>LisanHealth · ልሳን ጤና</strong><br />Your health report, in your language</p>
+<p align="center"><sub>Multilingual explanations and Addis AI speech in Amharic, Afaan Oromoo, and Tigrinya</sub></p>
 
 LisanHealth is an Ethiopian-focused multilingual medical-report explainer for English, Amharic (`am`), Afaan Oromoo (`om`), and Tigrinya (`ti`). It provides structured educational explanations and on-demand speech. It is not a diagnostic, prescribing, or treatment system.
 
