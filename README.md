@@ -8,6 +8,12 @@ LisanHealth is an Ethiopian-focused multilingual medical-report explainer for En
 
 [![CI](https://github.com/Eliphaz21/Lisan_Health/actions/workflows/ci.yml/badge.svg)](https://github.com/Eliphaz21/Lisan_Health/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Node.js 24](https://img.shields.io/badge/Node.js-24-green.svg)](https://nodejs.org/)
 
+| Product | Deployment |
+|---|---|
+| Live demo | **Coming soon — AWS deployment pending** |
+| Public API health | **Coming soon — add the deployed `/api/v1/health` URL after launch** |
+| Source code | [github.com/Eliphaz21/Lisan_Health](https://github.com/Eliphaz21/Lisan_Health) |
+
 ## Product flow
 
 1. An authenticated user uploads a PDF, PNG, or JPEG laboratory report.
@@ -53,17 +59,83 @@ flowchart LR
 
 The project demonstrates the complete delivery path: Git and GitHub Actions for CI/CD, multi-stage Docker images and Compose for local environments, Kustomize and Helm for Kubernetes packaging, Terraform for AWS VPC/EKS infrastructure, GHCR for immutable container images, and Prometheus/Grafana configuration for observability. AWS deployment remains an account-specific step described in the infrastructure guide.
 
-## Run the website
+## Run the project locally
 
-Use Windows PowerShell and follow these steps:
+Follow this guide in Windows PowerShell. You need Node.js, Git, and a running PostgreSQL database. For cloud-backed development, use a dedicated AletCloud database with synthetic records only.
 
-1. Copy `.env.example` to `.env` and add local development values. Never commit `.env` or API keys.
-2. Start the backend: `cd backend`, `npm ci`, `npm run build`, `npm test`, then `npm run dev`.
-3. In a second terminal start the frontend: `cd frontend`, `npm ci`, then `npm run dev`.
-4. Open `http://localhost:5173` and confirm the API health at `http://localhost:8000/api/v1/health`.
-5. Sign in, select `English`, `Amharic`, `Afaan Oromoo`, or `Tigrinya`, and upload a synthetic report.
+### Step 1 — Configure the environment
 
-For a containerized run, use `docker compose config`, `docker compose up --build -d`, and `docker compose ps`. Stop it with `docker compose down`. Use a dedicated AletCloud/PostgreSQL development database for cloud-backed local testing; never use production data.
+From the repository root:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Open `.env` and add your local development values. Keep this file private. Never commit passwords, database URLs, or AI keys.
+
+### Step 2 — Start the backend
+
+Open PowerShell window 1:
+
+```powershell
+Set-Location backend
+npm ci
+npm run build
+npm test
+npm run dev
+```
+
+The API should run at `http://localhost:8000`.
+
+### Step 3 — Start the frontend
+
+Open PowerShell window 2, leaving the backend running:
+
+```powershell
+Set-Location frontend
+npm ci
+npm run dev
+```
+
+Open `http://localhost:5173` in your browser.
+
+### Step 4 — Check the connection
+
+Open this address in a browser or run:
+
+```powershell
+Invoke-WebRequest http://localhost:8000/api/v1/health
+```
+
+The backend health response should be successful before you test uploads.
+
+### Step 5 — Test the main flow
+
+1. Create an account or sign in.
+2. Choose English, Amharic, Afaan Oromoo, or Tigrinya.
+3. Upload a synthetic PDF, PNG, or JPEG report.
+4. Review the extracted values and reference ranges.
+5. Read the localized explanation and doctor questions.
+6. Press **Play** to request Addis AI speech.
+7. Open History to confirm that the report belongs to your account.
+
+### Optional — Run with Docker Compose
+
+From the repository root:
+
+```powershell
+docker compose config
+docker compose up --build -d
+docker compose ps
+```
+
+Open `http://localhost:5173` and check the backend at `http://localhost:8000/api/v1/health`. Stop the containers when finished:
+
+```powershell
+docker compose down
+```
+
+Use a dedicated development database for cloud-backed testing. Never connect local experiments to production data.
 
 ## Addis AI speech workflow
 
@@ -96,3 +168,16 @@ LisanHealth does not diagnose illness, prescribe medicine, change treatment, or 
 Licensed under the [MIT License](LICENSE).
 
 **© 2026 Yeabsera Andnet · LisanHealth**
+
+## Product screenshots
+
+These screenshots show the current product experience using synthetic data. They cover the multilingual home screen, localized report explanation with Addis AI speech, saved report history, and authentication.
+
+> The screenshot files must be copied into `docs/screenshots/` before these gallery links are enabled. They are intentionally kept separate from application assets so they do not increase the production web bundle.
+
+Planned gallery assets:
+
+- `home-amharic.png` — multilingual upload experience.
+- `report-amharic-speech.png` — localized report with the Addis AI speech player.
+- `history.png` — private saved-report history.
+- `sign-in.png` — secure sign-in page.
