@@ -5,6 +5,8 @@ import { HomePage } from './pages/HomePage';
 import type { ExtractedLabReport, SupportedLanguage, LabObservation } from './types/report';
 import type { User } from './types/auth';
 import { Footer } from './components/Footer';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { NotFoundPage } from './pages/NotFoundPage';
 
 const LoginPage = lazy(() => import('./pages/LoginPage').then(({ LoginPage }) => ({ default: LoginPage })));
 const RegisterPage = lazy(() => import('./pages/RegisterPage').then(({ RegisterPage }) => ({ default: RegisterPage })));
@@ -131,7 +133,8 @@ export const App: React.FC = () => {
         }).catch((err) => console.warn('Could not auto-save to history:', err));
       }
     } catch (err: any) {
-      console.warn("Pipeline processing fallback:", err.message);
+      console.warn("Pipeline processing failed:", err.message);
+      setError(err?.message || 'We could not process this report. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -268,6 +271,7 @@ export const App: React.FC = () => {
   return (
     <BrowserRouter>
       <div className="app">
+        <ErrorBoundary>
         <Suspense fallback={<main className="container" aria-busy="true">Loading…</main>}>
         <Routes>
           <Route
@@ -331,9 +335,10 @@ export const App: React.FC = () => {
             element={<AdminPage currentUser={user} token={token} />}
           />
 
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
         </Suspense>
+        </ErrorBoundary>
         <Footer language={currentLanguage} />
       </div>
     </BrowserRouter>

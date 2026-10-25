@@ -89,9 +89,49 @@ body {
 .history-controls { display: none !important; }
 .history-summary { display: none !important; }
 .history-count { margin: 0 0 1rem; color: var(--color-text-muted); font-size: .9rem; font-weight: 600; }
+.error-page { flex: 1; display: grid; place-items: center; min-height: 60vh; }
+.error-page__card { max-width: 560px; text-align: center; }
+.error-page__code { color: var(--color-skymint-dark); font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.error-page__card h1 { margin: .35rem 0 .75rem; }
+.error-page__card p { color: var(--color-text-muted); }
+.error-page__id { margin: 1rem 0; font-size: .8rem; overflow-wrap: anywhere; }
+.btn-primary { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: .65rem 1rem; border: 0; border-radius: var(--radius-md); background: var(--color-graphite); color: #fff; font-weight: 700; cursor: pointer; text-decoration: none; }
+.btn-primary:hover { background: var(--color-graphite-light); }
+.error-page__link { margin-top: 1rem; }
 @media (max-width: 720px) {
+  .container { padding-left: 1rem; padding-right: 1rem; }
+  .navbar { padding: .6rem 0; }
+  .navbar-inner { align-items: flex-start; gap: .65rem; }
+  .brand-wrapper { gap: .5rem; min-width: 0; }
+  .brand-logo-img { width: 38px; height: 38px; }
+  .brand-title { font-size: 1rem; }
+  .brand-native-text { font-size: .78rem; }
+  .navbar-inner > div:last-child { flex: 1; min-width: 0; }
+  .navbar-inner > div:last-child > div { flex-wrap: wrap; justify-content: flex-end; gap: .3rem !important; }
+  .navbar a, .navbar button { min-height: 40px; }
+  .hero { padding: 1.75rem 0 1rem; }
+  .hero-title { font-size: clamp(1.55rem, 7vw, 2rem); line-height: 1.2; }
+  .hero-tagline { font-size: .95rem; }
+  .card { padding: 1rem; border-radius: var(--radius-md); }
+  .lang-selector { max-width: 100%; }
+  .lang-btn { padding: .55rem .25rem; font-size: .75rem; }
+  .upload-zone { min-height: 190px; height: auto; padding: 2rem .9rem; }
+  .table-wrapper { margin-left: -.25rem; margin-right: -.25rem; }
+  .results-table { min-width: 620px; }
+  .audio-card { flex-direction: column; align-items: stretch; gap: 1rem; padding: 1rem; }
+  .audio-info { min-width: 0; }
+  .disclaimer-banner { font-size: .8rem; padding: .85rem; }
   .site-footer__primary { grid-template-columns: 1fr; gap: .35rem; }
   .site-footer__copyright { white-space: normal; }
+}
+
+@media (max-width: 420px) {
+  .navbar-inner { flex-direction: column; align-items: stretch; }
+  .navbar-inner > div:last-child > div { justify-content: flex-start; }
+  .brand-wrapper { align-self: flex-start; }
+  .lang-btn { font-size: .7rem; }
+  .sample-buttons { flex-direction: column; align-items: stretch; }
+  .btn-sample { justify-content: center; }
 }
 
 /* Container */
