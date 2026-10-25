@@ -6,7 +6,7 @@
 # ------------------------------------------------------------------------------
 # Stage 1: Build Dependencies
 # ------------------------------------------------------------------------------
-FROM node:24-alpine3.22 AS builder
+FROM node:24-alpine AS builder
 WORKDIR /build/backend
 COPY backend/package*.json ./
 RUN npm ci
@@ -16,7 +16,7 @@ RUN npm run build
 # ------------------------------------------------------------------------------
 # Stage 2: Minimal Runtime Image
 # ------------------------------------------------------------------------------
-FROM node:24-alpine3.22 AS runtime
+FROM node:24-alpine AS runtime
 
 LABEL maintainer="LisanHealth Engineering Team"
 LABEL description="LisanHealth TypeScript Express Backend Microservice"
