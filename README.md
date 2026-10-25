@@ -1,135 +1,78 @@
-# LisanHealth (ልሳን ጤና)
+# LisanHealth
 
-> **"Your Health Report, in Your Language."**
-> A multilingual medical laboratory report explainer designed for Ethiopia, delivering evidence-grounded explanations and natural audio in **English**, **Amharic (አማርኛ)**, and **Afaan Oromoo**.
+<p align="center"><img src="./frontend/public/logo.png" alt="LisanHealth logo" width="112" /></p>
+<p align="center"><strong>Your health report, in your language.</strong></p>
 
-[![CI Pipeline](https://github.com/Eliphaz21/Lisan_Health/actions/workflows/ci.yml/badge.svg)](https://github.com/Eliphaz21/Lisan_Health/actions)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Node 24](https://img.shields.io/badge/node-v24-green.svg)](https://nodejs.org/)
-[![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
+LisanHealth is an Ethiopian-focused multilingual medical-report explainer for English, Amharic (`am`), Afaan Oromoo (`om`), and Tigrinya (`ti`). It provides structured educational explanations and on-demand speech. It is not a diagnostic, prescribing, or treatment system.
 
----
+[![CI](https://github.com/Eliphaz21/Lisan_Health/actions/workflows/ci.yml/badge.svg)](https://github.com/Eliphaz21/Lisan_Health/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Node.js 24](https://img.shields.io/badge/Node.js-24-green.svg)](https://nodejs.org/)
 
-## 1. Project Purpose & Scope
+## Product flow
 
-In Ethiopia, medical laboratory reports are predominantly printed in English, using dense clinical abbreviations, technical units, and reference ranges that patients and caregivers struggle to understand.
+1. An authenticated user uploads a PDF, PNG, or JPEG laboratory report.
+2. The backend validates type, signature, size, and processing limits.
+3. Deterministic extraction preserves values, units, signs, and reference intervals.
+4. Provider A creates a structured English explanation; Addis AI localizes it to the selected language.
+5. Safety checks prevent downstream text from changing extracted clinical facts.
+6. Addis AI speech is generated only when the user presses Play.
+7. Private report metadata and history are stored in PostgreSQL for the owning user.
 
-**LisanHealth** bridges this communication barrier by:
-1. Extracting text from laboratory PDFs and scanned images.
-2. Grounding clinical explanations in verified reference intervals using **Dual-AI Architecture**.
-3. Localizing explanations into **Amharic** and **Afaan Oromoo** via **Addis AI**.
-4. Generating natural spoken audio (Text-to-Speech) for accessibility.
-5. Providing structured questions to empower patients when consulting their physician.
+| Code | Language | Text | Speech |
+|---|---|---:|---:|
+| `en` | English | Yes | Provider configuration dependent |
+| `am` | አማርኛ (Amharic) | Yes | Addis AI |
+| `om` | Afaan Oromoo | Yes | Addis AI |
+| `ti` | ትግርኛ (Tigrinya) | Yes | Addis AI/provider configuration dependent |
 
-> [!IMPORTANT]
-> **Medical Disclaimer:** LisanHealth is an **educational explainer**, NOT a medical diagnostic system. It does not replace a doctor, diagnose conditions, prescribe medications, or alter treatment plans.
-
----
-
-## 2. Architecture: Dual-AI Pipeline
+## Architecture
 
 ```mermaid
-flowchart TD
-    User([User / Patient]) -->|Upload PDF or Image| WebUI[Frontend: React + Vite]
-    WebUI -->|Secure Upload| API[Backend: TypeScript Express Service]
-    
-    subgraph Pipeline [Deterministic & AI Processing Pipeline]
-        API -->|Stage A| Extract[Deterministic Extraction & OCR]
-        Extract -->|Stage B| Validate[Schema & Unit Preservation Validation]
-        Validate -->|Stage C| ProviderA[AI Provider A: English Clinical Reasoning]
-        ProviderA -->|Stage D| SafetyCheck[Safety & Consistency Filter]
-        SafetyCheck -->|Stage E| ProviderB[AI Provider B: Addis AI Localization]
-        ProviderB -->|Stage F| TTS[Addis AI Multilingual TTS Engine]
-    end
-
-    TTS -->|Localized Audio & Text| Delivery[Delivery Service]
-    Delivery -->|Explanations & Audio Stream| WebUI
+flowchart LR
+  Browser[React + Vite UI] --> API[TypeScript Express API]
+  API --> Extract[Validation and PDF/image extraction]
+  Extract --> Guard[Value and unit preservation guard]
+  Guard --> Reason[Provider A English reasoning]
+  Reason --> Localize[Addis AI localization]
+  Localize --> Speech[Addis AI on-demand TTS]
+  API --> DB[(PostgreSQL / AletCloud or CI PostgreSQL)]
+  API --> Private[Private report/audio storage]
 ```
 
----
+## Repository map
 
-## 3. Implemented vs. Planned Features
+| Area | Purpose |
+|---|---|
+| `backend/` | TypeScript Express API, Prisma schema, authentication, persistence, and AI pipeline |
+| `frontend/` | React/TypeScript/Vite UI, language selection, reports, and audio player |
+| `infrastructure/` | Docker, Kustomize, Helm, Terraform, GitOps, and monitoring |
+| `docs/` | Product, requirements, architecture, testing, security, and approval gates |
+| `.github/workflows/` | CI quality gates and CD validation/image publishing |
 
-| Feature | Status | Description |
-| :--- | :--- | :--- |
-| **Project Setup & Documentation** | **Implemented** | Full PRD, SRS, Architecture, Testing, Security, and ADR documentation. |
-| **TypeScript Express API** | **Implemented** | Authenticated, rate-limited API with health checks, report history, uploads, and speech routes. |
-| **Synthetic Report Pipeline** | **Implemented** | Deterministic extraction and safety validation for synthetic PDF/image/text workflows. |
-| **Dual-AI Provider Integration** | **Implemented** | Clinical reasoning plus Addis AI localization and Tigrinya language support. |
-| **React + TypeScript Web UI** | **Implemented** | Accessible dashboard with four-language selection and audio player. |
-| **Docker & Compose Environment** | **Implemented** | Multi-stage images and PostgreSQL Compose service with health checks. |
-| **Kubernetes & Helm** | **Implemented** | Deployment manifests, security controls, health probes, and resource policies. |
+## Local development (Windows PowerShell)
 
----
+Copy `.env.example` to `.env`, edit it locally, and never commit secrets. Then run `npm ci`, `npm run build`, `npm test`, `npm run test:api`, and `npm run dev` inside `backend`. In a second terminal run `npm ci` and `npm run dev` inside `frontend`. Open `http://localhost:5173`; the API normally listens on `http://localhost:8000`. Check `/api/v1/health` and `/api/v1/ready` before uploads. Use a dedicated AletCloud/PostgreSQL development database, never production.
 
-## 4. Prerequisites
+## Docker Compose
 
-- **OS:** Windows 10/11 with PowerShell
-- **Node.js:** v20+ (v24 recommended)
-- **Docker Desktop:** Version 25+
-- **Git:** Version 2.40+
+Run `docker compose config`, then `docker compose up --build -d`, `docker compose ps`, and `Invoke-WebRequest http://localhost:8000/api/v1/health`. Stop with `docker compose down`. Docker Hub TLS timeouts are network/image-download failures; renaming a cached Postgres tag does not replace missing Node or Nginx base images.
 
----
+## Verification and delivery
 
-## 5. Local Development Setup (Windows PowerShell)
+Backend and frontend builds/tests, disposable PostgreSQL integration tests, Docker/Compose, Kustomize, Helm, Terraform, dependency/security checks, and GHCR publishing are covered by CI. ZAP/Trivy results are security evidence requiring review; a green workflow is not a professional penetration test.
 
-### Backend Setup (TypeScript)
-```powershell
-# 1. Clone repository
-git clone https://github.com/Eliphaz21/Lisan_Health.git
-cd Lisan_Health
+Terraform provisions an AWS EKS cluster with EC2-backed worker nodes; it is not an already deployed AWS environment. Before `terraform apply`, configure approved remote state, AWS/OIDC credentials, DNS/TLS, secrets, PostgreSQL network access, backups, and cost limits. See [infrastructure/README.md](infrastructure/README.md).
 
-# 2. Configure environment
-Copy-Item .env.example .env
+## Documentation
 
-# 3. Install backend dependencies
-Set-Location backend
-npm install
+- [Backend guide](backend/README.md) · [Frontend guide](frontend/README.md) · [Infrastructure/AWS guide](infrastructure/README.md)
+- [PRD](docs/PRD.md) · [SRS](docs/SRS.md) · [Architecture](docs/architecture.md)
+- [Testing](docs/testing.md) · [Security](docs/security.md) · [Implementation roadmap](docs/implementation-plan.md)
+- [External approval gates](docs/external-approval-gates.md)
 
-# 4. Build and test the backend
-npm run build
-npm test
-npm run test:api
+## Safety, privacy, and release status
 
-# 5. Start the backend development server
-npm run dev
-```
+LisanHealth does not diagnose illness, prescribe medicine, change treatment, or replace a qualified clinician. Do not upload unnecessary personal identifiers. Development and CI use synthetic data. Commercial launch still requires clinical safety, Ethiopian privacy/legal, data-protection, native-language, backup/restore, and professional penetration-test reviews.
 
-### Frontend Setup
-```powershell
-# In a new PowerShell terminal
-cd frontend
-npm install
-npm run dev
-```
+Licensed under the [MIT License](LICENSE).
 
----
-
-## 6. Docker & Container Verification
-```powershell
-# Build and run complete multi-container stack
-docker compose up --build -d
-
-# Check running services and health status
-docker compose ps
-curl http://localhost:8000/api/v1/health
-```
-
----
-
-## 7. Documentation Index
-
-- [PRD (Product Requirements Document)](file:///d:/.desktop/lisan_health/docs/PRD.md)
-- [SRS (Software Requirements Specification)](file:///d:/.desktop/lisan_health/docs/SRS.md)
-- [Architecture & Diagrams](file:///d:/.desktop/lisan_health/docs/architecture.md)
-- [11-Week DevOps Roadmap & Sprint Plan](file:///d:/.desktop/lisan_health/docs/implementation-plan.md)
-- [Design System & UI Guidelines](file:///d:/.desktop/lisan_health/docs/design.md)
-- [Security, Privacy & Threat Model](file:///d:/.desktop/lisan_health/docs/security.md)
-- [Testing Strategy & Test Matrix](file:///d:/.desktop/lisan_health/docs/testing.md)
-- [Architecture Decision Records (ADRs)](file:///d:/.desktop/lisan_health/docs/decisions/)
-
----
-
-## 8. License & Privacy
-Licensed under the [MIT License](LICENSE).  
-**Data Privacy:** LisanHealth uses synthetic laboratory data in development and testing. Real patient health information must never be committed to source control or sent across unverified networks.
+**© 2026 Yeabsera Andnet · LisanHealth**

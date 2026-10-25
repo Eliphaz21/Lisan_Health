@@ -32,7 +32,7 @@ graph TD
         UploadComponent[Upload & Preview Component]
         ReviewComponent[Observation Review Table]
         AudioPlayer[Multilingual Audio Player]
-        LangSelector[Language Selector: EN / AM / OM]
+        LangSelector[Language Selector: EN / AM / OM / TI]
     end
 
     subgraph BackendAPI [Backend: TypeScript Express]
@@ -90,7 +90,7 @@ sequenceDiagram
     API->>Filter: Cross-validate values against ExtractedLabReport
     Note over Filter: Rejects if ProvA modified numbers or reference ranges
     
-    API->>Addis: Request Localization (Amharic or Afaan Oromoo)
+    API->>Addis: Request Localization (en, am, om, or ti)
     Addis-->>API: LocalizedExplanation (Native text)
     
     opt If TTS is requested

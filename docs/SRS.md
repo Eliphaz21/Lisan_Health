@@ -22,10 +22,10 @@ The LisanHealth system ingests medical laboratory reports (PDF or image format),
 | **FR-005** | Unit Validation | Prevent missing or altered units across pipeline boundaries. | Pipeline aborts with a validation error if output values deviate from Stage A inputs. |
 | **FR-006** | Provider A Reasoning | Generate plain-English explanations of what each test measures and note out-of-range flags. | Must not diagnose disease, prescribe medications, or invent missing reference ranges. |
 | **FR-007** | Doctor Questions | Provider A generates 2-4 clarifying questions the patient can ask their physician. | Questions must be relevant to observed out-of-range values or clinical context. |
-| **FR-008** | Provider B Addis AI | Localize approved English explanation into selected language (`en`, `am`, `om`). | Localization must preserve numbers, units, warnings, and disclaimer sections verbatim. |
+| **FR-008** | Provider B Addis AI | Localize approved English explanation into selected language (`en`, `am`, `om`, `ti`). | Localization must preserve numbers, units, warnings, and disclaimer sections verbatim. |
 | **FR-009** | Addis AI TTS | Synthesize spoken audio for localized text in Amharic and Afaan Oromoo. | Audio stream/file is returned; if TTS fails, localized text must remain accessible without crashing. |
 | **FR-010** | Safety Disclaimer | Prominently attach an explicit educational disclaimer to every explanation. | Disclaimer appears in both text and speech, reiterating consultation with a doctor. |
-| **FR-011** | User Language Selection | Allow user to choose output language (`English`, `Amharic`, `Afaan Oromoo`). | System switches prompt context and localization target accordingly. |
+| **FR-011** | User Language Selection | Allow user to choose output language (`English`, `Amharic`, `Afaan Oromoo`, `Tigrinya`). | System switches prompt context and localization target accordingly. |
 | **FR-012** | State Machine | Expose explicit job processing states. | Valid state transitions: `UPLOADED` $\rightarrow$ `EXTRACTING` $\rightarrow$ `EXPLAINING` $\rightarrow$ `LOCALIZING` $\rightarrow$ `AUDIO_SYNTHESIS` $\rightarrow$ `COMPLETED` (or `FAILED`). |
 
 ---

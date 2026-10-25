@@ -24,7 +24,7 @@ gantt
 
     section Day 2: AI & Localization
     Provider A Reasoning Service  :d2_1, after d1_5, 3h
-    Addis AI Adapter (AM/OM)      :d2_2, after d2_1, 3h
+    Addis AI Adapter (AM/OM/TI)      :d2_2, after d2_1, 3h
     Dual-AI Pipeline Integration  :d2_3, after d2_2, 3h
     Addis AI TTS Voice Synthesis  :d2_4, after d2_3, 2h
     CI Pipeline & Kind Validation :d2_5, after d2_4, 2h
@@ -33,13 +33,13 @@ gantt
 ### Day 1 Deliverables
 - **TASK-01:** Repository initialization, documentation suite, and environment templates. *(Completed)*
 - **TASK-02:** TypeScript Express service with structured health checks (`/api/v1/health`), versioning, and test suites.
-- **TASK-03:** Synthetic laboratory report parser with Pydantic validation (CBC, Lipid, Metabolic panels) and unit preservation tests.
+- **TASK-03:** Synthetic laboratory report parser with TypeScript schema validation (CBC, Lipid, Metabolic panels) and unit preservation tests.
 - **TASK-04:** React + Vite + TypeScript frontend with language selection, upload preview, and observation display.
 - **TASK-05:** Multi-stage `Dockerfile` and `docker-compose.yml` with health check verification.
 
 ### Day 2 Deliverables
 - **TASK-06:** Provider A reasoning interface with deterministic mock test fixtures and question generator.
-- **TASK-07:** Provider B Addis AI localization adapter with support for English, Amharic, and Afaan Oromoo.
+- **TASK-07:** Provider B Addis AI localization adapter with support for English, Amharic, Afaan Oromoo, and Tigrinya.
 - **TASK-08:** Dual-AI sequential pipeline orchestrator with schema and value verification filters.
 - **TASK-09:** Addis AI TTS audio service with play/pause playback controls on the web UI.
 - **TASK-10:** GitHub Actions CI workflow (linting, tests, container builds) and local Kubernetes Kind proof-of-concept.

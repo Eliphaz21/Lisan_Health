@@ -26,7 +26,7 @@ graph TD
 
 ## 2. Test Suites & Commands (Windows PowerShell)
 
-### Backend Tests (Pytest)
+### Backend Tests (TypeScript)
 ```powershell
 # Run all unit and integration tests
 npm --prefix backend test
@@ -63,3 +63,7 @@ docker compose down
 | `synthetic_cbc_anemia.json` | Hematology | Low Hemoglobin ($9.2\text{ g/dL}$), normal platelets. Verifies out-of-range flag and doctor question generation. |
 | `synthetic_lipid_panel.json` | Biochemistry | High Total Cholesterol ($245\text{ mg/dL}$), LDL ($160\text{ mg/dL}$). Verifies non-diagnostic educational explanation. |
 | `synthetic_malformed_ocr.json` | Extraction Edge Case | Missing units, blurred reference range. Verifies `needs_review: true` status. |
+
+## 4. Release evidence and limits
+
+The automated contract covers English, Amharic, Afaan Oromoo, and Tigrinya language codes and deterministic safety invariants. CI results are evidence for software correctness, not clinical validation, native-language quality certification, AWS deployment, or professional penetration testing. ZAP and Trivy findings must be reviewed before release even when their jobs are configured as advisory.

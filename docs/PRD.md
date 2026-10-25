@@ -18,7 +18,7 @@ In Ethiopia, over 80% of medical laboratory diagnostic reports are issued in Eng
 To deliver an accessible, privacy-preserving, multilingual laboratory report explainer for Ethiopia that transforms dense technical results into understandable, culturally respectful text and spoken audio.
 
 ### 2.2 Core Product Goals
-- **G-1 (Multilingual Accessibility):** Deliver clear, accurate explanations in **English**, **Amharic (አማርኛ)**, and **Afaan Oromoo**.
+- **G-1 (Multilingual Accessibility):** Deliver clear, accurate explanations in **English**, **Amharic (አማርኛ)**, **Afaan Oromoo**, and **Tigrinya (ትግርኛ)**.
 - **G-2 (Dual-AI Grounding):** Decouple clinical reasoning (AI Provider A) from Ethiopian localization and speech synthesis (Addis AI Provider B).
 - **G-3 (Audio Inclusivity):** Provide natural text-to-speech (TTS) audio narration for every generated explanation.
 - **G-4 (Zero Hallucination / Unit Preservation):** Preserve extracted lab values, signs, and reference intervals deterministically.
@@ -71,7 +71,7 @@ sequenceDiagram
 - Secure PDF & image upload (size limit: 10MB).
 - Deterministic extraction of CBC and metabolic panels with unit preservation.
 - Provider A reasoning engine producing English structured explanations and physician discussion points.
-- Addis AI adapter supporting English, Amharic, and Afaan Oromoo.
+- Addis AI adapter supporting English, Amharic, Afaan Oromoo, and Tigrinya.
 - Addis AI TTS integration for Amharic and Afaan Oromoo audio playback.
 - Responsive, accessible Web dashboard.
 - Containerized deployment via Docker Compose.
@@ -90,3 +90,7 @@ sequenceDiagram
 - **Localization Naturalness:** High-quality review scores from native Amharic and Afaan Oromoo speakers.
 - **Performance:** End-to-end report explanation and audio generation $< 15$ seconds under standard network conditions.
 - **Safety Compliance:** 0% generation of unauthorized medical diagnoses or medication recommendations.
+
+### 6.1 Language contract
+
+The supported application languages are English (`en`), Amharic (`am`), Afaan Oromoo (`om`), and Tigrinya (`ti`). Localization must preserve numbers, units, reference intervals, flags, warnings, disclaimers, and doctor questions. Tigrinya is an application/provider contract and must be validated by a native-language reviewer before commercial launch.
