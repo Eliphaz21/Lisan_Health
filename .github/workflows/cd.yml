@@ -42,16 +42,36 @@ jobs:
           version: 'v3.15.0'
 
       - name: Lint Default Values
-        run: helm lint infrastructure/helm/lisan-health
+        run: >-
+          helm lint infrastructure/helm/lisan-health
+          --set-string backend.secrets.secretKey=ci-only-secret
+          --set-string backend.secrets.databaseUrl=postgresql://ci
+          --set-string backend.secrets.adminEmail=ci@example.com
 
       - name: Lint Dev Values
-        run: helm lint infrastructure/helm/lisan-health -f infrastructure/helm/lisan-health/values-dev.yaml
+        run: >-
+          helm lint infrastructure/helm/lisan-health
+          -f infrastructure/helm/lisan-health/values-dev.yaml
+          --set-string backend.secrets.secretKey=ci-only-secret
+          --set-string backend.secrets.databaseUrl=postgresql://ci
+          --set-string backend.secrets.adminEmail=ci@example.com
 
       - name: Lint Prod Values
-        run: helm lint infrastructure/helm/lisan-health -f infrastructure/helm/lisan-health/values-prod.yaml
+        run: >-
+          helm lint infrastructure/helm/lisan-health
+          -f infrastructure/helm/lisan-health/values-prod.yaml
+          --set-string backend.secrets.secretKey=ci-only-secret
+          --set-string backend.secrets.databaseUrl=postgresql://ci
+          --set-string backend.secrets.adminEmail=ci@example.com
 
       - name: Helm Template Dry-Run
-        run: helm template lisan-release infrastructure/helm/lisan-health -f infrastructure/helm/lisan-health/values-prod.yaml > /dev/null
+        run: >-
+          helm template lisan-release infrastructure/helm/lisan-health
+          -f infrastructure/helm/lisan-health/values-prod.yaml
+          --set-string backend.secrets.secretKey=ci-only-secret
+          --set-string backend.secrets.databaseUrl=postgresql://ci
+          --set-string backend.secrets.adminEmail=ci@example.com
+          > /dev/null
 
   security-scan:
     name: Container Security & Vulnerability Scan
