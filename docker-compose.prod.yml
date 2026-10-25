@@ -1,0 +1,51 @@
+services:
+  backend:
+    image: ghcr.io/eliphaz21/lisan-backend:${IMAGE_TAG:?Set IMAGE_TAG to an immutable Git commit SHA}
+    container_name: lisan-backend
+    env_file:
+      - .env
+    environment:
+      ENVIRONMENT: production
+      APP_HOST: 0.0.0.0
+      APP_PORT: 8000
+      UPLOAD_DIR: /app/storage/uploads
+      AUDIO_OUTPUT_DIR: /app/storage/audio
+    expose:
+      - "8000"
+    volumes:
+      - lisan-storage:/app/storage
+    networks:
+      - lisan-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8000/api/v1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  frontend:
+    image: ghcr.io/eliphaz21/lisan-frontend:${IMAGE_TAG:?Set IMAGE_TAG to an immutable Git commit SHA}
+    container_name: lisan-frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:3000:80"
+    networks:
+      - lisan-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1/nginx-health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  lisan-storage:
+    name: lisan-health-production-storage
+
+networks:
+  lisan-net:
+    name: lisan-health-production-network
