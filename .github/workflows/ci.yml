@@ -16,12 +16,33 @@ jobs:
   backend-qa:
     name: TypeScript Backend Build & Safety Invariants
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: lisan_ci
+          POSTGRES_PASSWORD: lisan_ci_password
+          POSTGRES_DB: lisan_health_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U lisan_ci -d lisan_health_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      NODE_ENV: test
+      ENVIRONMENT: test
+      DATABASE_URL: postgresql://lisan_ci:lisan_ci_password@127.0.0.1:5432/lisan_health_ci
+      SECRET_KEY: ci-only-secret-that-is-at-least-32-characters-long
+      ADMIN_EMAIL: admin@example.com
+      ADDIS_AI_TTS_ENABLED: "false"
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: "npm"
@@ -50,12 +71,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: Set up Node.js 20.x
-        uses: actions/setup-node@v4
+      - name: Set up Node.js 24.x
+        uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: 24
           cache: "npm"
           cache-dependency-path: frontend/package-lock.json
 
@@ -80,7 +101,7 @@ jobs:
     needs: [backend-qa, frontend-qa]
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Validate Docker Compose Configuration
         run: docker compose config
@@ -89,13 +110,13 @@ jobs:
         run: docker build -t lisan-backend:ci -f backend/Dockerfile .
 
       - name: Build Frontend Container
-        run: docker build -t lisan-frontend:ci -f frontend/Dockerfile ./frontend
+        run: docker build -t lisan-frontend:ci -f frontend/Dockerfile .
 
   secret-scan:
     name: Secret and source safety scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Scan repository for secrets

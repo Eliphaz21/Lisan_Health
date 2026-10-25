@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: aletcloud-test
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Require dedicated test endpoint
         env:
           ALET_ENDPOINT: ${{ secrets.ALETCLOUD_TEST_ENDPOINT }}

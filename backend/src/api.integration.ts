@@ -1,8 +1,8 @@
-// Isolated API smoke/integration test. It deliberately runs without a database
-// URL and therefore cannot touch a developer or production PostgreSQL instance.
+// Isolated API integration test. CI injects a disposable PostgreSQL service;
+// local runs may use the in-memory test repository when no URL is provided.
 process.env.ENVIRONMENT = "test";
 process.env.NODE_ENV = "test";
-process.env.DATABASE_URL = "";
+process.env.DATABASE_URL ||= "";
 process.env.SECRET_KEY = "test-only-secret-that-is-at-least-32-characters-long";
 process.env.ADMIN_EMAIL = "admin@example.com";
 
