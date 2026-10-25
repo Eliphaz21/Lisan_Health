@@ -34,7 +34,7 @@ RUN mkdir -p /app/storage/uploads /app/storage/audio && chown -R lisan:lisan /ap
 
 # Copy application source code
 COPY --from=builder /build/backend/package*.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+RUN npm ci --omit=dev && npm cache clean --force && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 COPY --from=builder /build/backend/dist ./dist
 RUN chown -R lisan:lisan /app/backend
 
