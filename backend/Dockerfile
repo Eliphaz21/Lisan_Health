@@ -6,7 +6,7 @@
 # ------------------------------------------------------------------------------
 # Stage 1: Build Dependencies
 # ------------------------------------------------------------------------------
-FROM node:24-alpine AS builder
+FROM node:24-alpine3.22 AS builder
 WORKDIR /build/backend
 COPY backend/package*.json ./
 RUN npm ci
@@ -16,12 +16,15 @@ RUN npm run build
 # ------------------------------------------------------------------------------
 # Stage 2: Minimal Runtime Image
 # ------------------------------------------------------------------------------
-FROM node:24-alpine AS runtime
+FROM node:24-alpine3.22 AS runtime
 
 LABEL maintainer="LisanHealth Engineering Team"
 LABEL description="LisanHealth TypeScript Express Backend Microservice"
 ENV NODE_ENV=production
 WORKDIR /app/backend
+
+# Apply the latest security patches available in the pinned Alpine release.
+RUN apk upgrade --no-cache
 
 # Create non-root system user & group (UID: 1001)
 RUN addgroup -S -g 10001 lisan && adduser -S -u 10001 -G lisan lisan
