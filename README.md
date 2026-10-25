@@ -1,4 +1,4 @@
-# LisanHealth
+# LisanHealth(ልሳን ጤና)
 
 <p align="center"><img src="./frontend/public/logo.png" alt="LisanHealth logo" width="112" /></p>
 <p align="center"><strong>LisanHealth · ልሳን ጤና</strong><br />Your health report, in your language</p>
